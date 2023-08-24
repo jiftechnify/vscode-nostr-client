@@ -74,7 +74,6 @@ const handleSetPrivateKey = (context: vscode.ExtensionContext) => {
       vscode.window.showErrorMessage("Invalid private key!");
       return;
     }
-    console.log(hexPk);
     await context.secrets.store(KEY_NOSTR_PRIVATE_KEY, hexPk);
 
     vscode.window.showInformationMessage("Saved your Nostr private key!");
