@@ -1,18 +1,20 @@
-import { finishEvent, nip19, relayInit } from "nostr-tools";
+import { Event, finishEvent, nip19, relayInit } from "nostr-tools";
 import * as vscode from "vscode";
+
+const KEY_NOSTR_PRIVATE_KEY = "nostr-priv-key";
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-nostr-client.setPrivKey",
+      "nostr-client.setPrivKey",
       handleSetPrivateKey(context)
     )
   );
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "vscode-nostr-client.postText",
+      "nostr-client.postText",
       handlePostText(context)
     )
   );
@@ -79,6 +81,15 @@ const handleSetPrivateKey = (context: vscode.ExtensionContext) => {
   };
 };
 
+const publishEvent = async (relayUrl: string, event: Event) => {
+  const relay = relayInit(relayUrl);
+  await relay.connect();
+  await relay.publish(event);
+
+  console.log("published event to", relayUrl);
+  relay.close();
+};
+
 const handlePostText = (context: vscode.ExtensionContext) => {
   return async () => {
     const privkey = await context.secrets.get(KEY_NOSTR_PRIVATE_KEY);
@@ -86,7 +97,15 @@ const handlePostText = (context: vscode.ExtensionContext) => {
       vscode.window.showErrorMessage("Set your Nostr private key first!");
       return;
     }
-    console.log(privkey);
+
+    const writeRelays = vscode.workspace
+      .getConfiguration("nostrClient")
+      .get("writeRelays") as string[];
+    if (writeRelays.length === 0) {
+      vscode.window.showErrorMessage(
+        "Please configure write relays to send posts."
+      );
+    }
 
     const content = await vscode.window.showInputBox({
       title: "Text to post",
@@ -106,10 +125,6 @@ const handlePostText = (context: vscode.ExtensionContext) => {
       privkey
     );
 
-    const relay = relayInit("wss://nrelay.c-stellar.net");
-    await relay.connect();
-    await relay.publish(ev);
-
-    relay.close();
+    await Promise.all(writeRelays.map((r) => publishEvent(r, ev)));
   };
 };
