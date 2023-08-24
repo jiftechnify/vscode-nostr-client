@@ -43,14 +43,14 @@
         },
         "nostrClient.writeRelays": {
           "type": "array",
-          "default": [
-            "wss://relay.damus.io",
-            "wss://relayable.org"
-          ],
           "items": {
             "type": "string",
             "format": "uri"
           },
+          "default": [
+            "wss://relay.damus.io",
+            "wss://relayable.org"
+          ],
           "markdownDescription": "Relay URLs to send your posts."
         }
       }
