@@ -9,13 +9,19 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "browser": "./dist/web/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "vscode-nostr-client.helloWorld",
-        "title": "Hello World"
+        "command": "vscode-nostr-client.setPrivKey",
+        "title": "Nostr Client: Set Private Key"
+      },
+      {
+        "command": "vscode-nostr-client.postText",
+        "title": "Nostr Client: Post Text"
       }
     ]
   },
@@ -44,5 +50,8 @@
     "@types/webpack-env": "^1.18.1",
     "assert": "^2.0.0",
     "process": "^0.11.10"
+  },
+  "dependencies": {
+    "nostr-tools": "^1.14.2"
   }
 }
