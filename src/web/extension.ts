@@ -1,10 +1,9 @@
 import { KEY_NOSTR_PRIVATE_KEY } from "./consts";
-import { NostrMetadataRepository } from "./nostr";
+import { NostrMetadataRepository, toHexPrivateKey } from "./nostr";
 
 import * as vscode from "vscode";
 
 import { NostrFetcher } from "nostr-fetch";
-import { finishEvent, nip19 } from "nostr-tools";
 import { createRxNostr } from "rx-nostr";
 
 let metadataRepo: NostrMetadataRepository;
@@ -49,30 +48,8 @@ export async function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated
 export function deactivate() {
   metadataRepo.dispose();
+  rxNostr.dispose();
 }
-
-const regexp32BytesHexStr = /^[a-f0-9]{64}$/;
-
-// if `pk` is ...
-// - bech32-encoded private key ("nsec1...`), validate and convert to hex string.
-// - hex string of 32 byte data, leave it as is.
-// - otherwise, return `undefined`.
-const toHexPrivateKey = (pk: string): string | undefined => {
-  if (pk.startsWith("nsec1")) {
-    try {
-      const res = nip19.decode(pk);
-      if (res.type === "nsec") {
-        return res.data;
-      }
-      console.log("toHexPrivateKey: unexpected decode result");
-      return undefined;
-    } catch (err) {
-      console.error(err);
-      return undefined;
-    }
-  }
-  return regexp32BytesHexStr.test(pk) ? pk : undefined;
-};
 
 const handleSetPrivateKey = (context: vscode.ExtensionContext) => {
   return async () => {
@@ -123,20 +100,6 @@ const handlePostText = async () => {
     return;
   }
 
-  const ev = finishEvent(
-    {
-      content,
-      kind: 1,
-      tags: [],
-      created_at: Math.floor(new Date().getTime() / 1000),
-    },
-    privkey
-  );
-
-  Object.values(rxNostr.getAllRelayState()).filter(
-    (state) => state === "ongoing"
-  ).length;
-
   rxNostr
     .send({ content, kind: 1 }, { seckey: privkey })
     .subscribe((packet) => {
@@ -147,8 +110,6 @@ const handlePostText = async () => {
 const handleSyncMetadata = async () => {
   await metadataRepo.resync();
   await rxNostr.switchRelays(metadataRepo.relays);
-
-  vscode.window.showInformationMessage("a", {});
 };
 
 const handleClearPrivkey = async () => {

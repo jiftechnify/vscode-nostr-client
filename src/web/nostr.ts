@@ -1,5 +1,5 @@
 import { NostrFetcher } from "nostr-fetch";
-import { getPublicKey } from "nostr-tools";
+import { getPublicKey, nip19 } from "nostr-tools";
 import { Nip07, Event as NostrEvent } from "nostr-typedef";
 import * as vscode from "vscode";
 import { CONFIG_KEYS, KEY_NOSTR_PRIVATE_KEY } from "./consts";
@@ -171,4 +171,27 @@ const parseRelayListInKind10002 = (ev: NostrEvent): Nip07.GetRelayResult => {
     });
 
   return res;
+};
+
+const regexp32BytesHexStr = /^[a-f0-9]{64}$/;
+
+// if `pk` is ...
+// - bech32-encoded private key ("nsec1...`), validate and convert to hex string.
+// - hex string of 32 byte data, leave it as is.
+// - otherwise, return `undefined`.
+export const toHexPrivateKey = (pk: string): string | undefined => {
+  if (pk.startsWith("nsec1")) {
+    try {
+      const res = nip19.decode(pk);
+      if (res.type === "nsec") {
+        return res.data;
+      }
+      console.log("toHexPrivateKey: unexpected decode result");
+      return undefined;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+  return regexp32BytesHexStr.test(pk) ? pk : undefined;
 };
