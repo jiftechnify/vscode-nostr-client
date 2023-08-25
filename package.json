@@ -36,11 +36,6 @@
         "category": "Nostr",
         "command": "nostr-client.syncMetadata",
         "title": "Synchronize Account Metadata"
-      },
-      {
-        "category": "Nostr",
-        "command": "nostr-client.debug",
-        "title": "debug"
       }
     ],
     "configuration": {
