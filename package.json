@@ -20,6 +20,7 @@
   "keywords": [
     "nostr"
   ],
+  "icon": "assets/icon.png",
   "activationEvents": [
     "onStartupFinished"
   ],
