@@ -1,15 +1,23 @@
 {
   "name": "vscode-nostr-client",
+  "version": "0.0.1",
+  "author": "jiftechnify",
   "displayName": "Nostr Client",
   "description": "Nostr client in VSCode",
   "publisher": "jiftechnify",
-  "author": "jiftechnify",
-  "version": "0.0.1",
+  "repository": {
+    "url": "https://github.com/jiftechnify/vscode-nostr-client",
+    "type": "git"
+  },
+  "license": "MIT",
   "engines": {
     "vscode": "^1.81.0"
   },
   "categories": [
     "Other"
+  ],
+  "keywords": [
+    "nostr"
   ],
   "activationEvents": [
     "onStartupFinished"
