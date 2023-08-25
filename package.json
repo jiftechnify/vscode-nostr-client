@@ -18,12 +18,29 @@
   "contributes": {
     "commands": [
       {
-        "command": "nostr-client.setPrivKey",
-        "title": "Nostr: Set Private Key"
+        "category": "Nostr",
+        "command": "nostr-client.postText",
+        "title": "Post Text"
       },
       {
-        "command": "nostr-client.postText",
-        "title": "Nostr: Post Text"
+        "category": "Nostr",
+        "command": "nostr-client.setPrivKey",
+        "title": "Set Private Key"
+      },
+      {
+        "category": "Nostr",
+        "command": "nostr-client.clearPrivkey",
+        "title": "Clear Private Key"
+      },
+      {
+        "category": "Nostr",
+        "command": "nostr-client.syncMetadata",
+        "title": "Synchronize Account Metadata"
+      },
+      {
+        "category": "Nostr",
+        "command": "nostr-client.debug",
+        "title": "debug"
       }
     ],
     "configuration": {
@@ -39,19 +56,16 @@
             "wss://relay.damus.io",
             "wss://relayable.org"
           ],
-          "markdownDescription": "Relay URLs to get settings of your account."
+          "markdownDescription": "Relay URLs to get metadata (your profile, relays to use etc...) of your account.  Set your daily-use relays here."
         },
-        "nostrClient.writeRelays": {
+        "nostrClient.additionalWriteRelays": {
           "type": "array",
           "items": {
             "type": "string",
             "format": "uri"
           },
-          "default": [
-            "wss://relay.damus.io",
-            "wss://relayable.org"
-          ],
-          "markdownDescription": "Relay URLs to send your posts."
+          "default": [],
+          "markdownDescription": "Relay URLs to additionally send your posts.  Write relays configured by events (kind 3 & 10002) are also used."
         }
       }
     }
@@ -76,6 +90,7 @@
     "assert": "^2.0.0",
     "eslint": "^8.41.0",
     "mocha": "^10.2.0",
+    "nostr-typedef": "^0.4.0",
     "process": "^0.11.10",
     "ts-loader": "^9.4.3",
     "typescript": "^5.1.3",
@@ -83,6 +98,8 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
-    "nostr-tools": "^1.14.2"
+    "nostr-fetch": "^0.12.2",
+    "nostr-tools": "^1.14.2",
+    "rx-nostr": "https://github.com/jiftechnify/rx-nostr#patched"
   }
 }
