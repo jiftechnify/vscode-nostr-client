@@ -1,8 +1,10 @@
+import { CONFIG_KEYS, KEY_NOSTR_PRIVATE_KEY } from "./consts";
+
 import { NostrFetcher } from "nostr-fetch";
 import { getPublicKey, nip19 } from "nostr-tools";
 import { Nip07, Event as NostrEvent } from "nostr-typedef";
 import * as vscode from "vscode";
-import { CONFIG_KEYS, KEY_NOSTR_PRIVATE_KEY } from "./consts";
+import { currUnixtime } from "./utils";
 
 const defaultBootstrapRelays = ["wss://relay.damus.io", "wss://relayable.org"];
 
@@ -12,6 +14,7 @@ export class NostrMetadataRepository {
 
   #profile: Record<string, unknown> = {};
   #relaysFromEvents: Nip07.GetRelayResult = {};
+  #userStatus = new UserStatus();
 
   private constructor(ctx: vscode.ExtensionContext, nf: NostrFetcher) {
     this.#ctx = ctx;
@@ -46,6 +49,10 @@ export class NostrMetadataRepository {
     return this.#ctx.secrets.get(KEY_NOSTR_PRIVATE_KEY);
   }
 
+  async isPrivatekeySet(): Promise<boolean> {
+    return (await this.getPrivateKey()) !== undefined;
+  }
+
   async getPublicKey(): Promise<string | undefined> {
     const privkey = await this.getPrivateKey();
     if (privkey === undefined) {
@@ -56,6 +63,14 @@ export class NostrMetadataRepository {
 
   get profile() {
     return this.#profile;
+  }
+
+  get userStatus() {
+    return this.#userStatus.value;
+  }
+
+  updateUserStatus(status: string, expiration?: number) {
+    this.#userStatus.update(status, expiration);
   }
 
   async resync() {
@@ -71,6 +86,18 @@ export class NostrMetadataRepository {
       getExtensionConfig<string[]>(CONFIG_KEYS.bootstrapRelays) ??
       defaultBootstrapRelays;
 
+    await Promise.all([
+      this.resyncProfileAndRelays(bootstrapRelays, pubkey),
+      this.resyncUserStatus(bootstrapRelays, pubkey),
+    ]);
+
+    console.log("finished resync-ing nostr metadata repo");
+  }
+
+  private async resyncProfileAndRelays(
+    bootstrapRelays: string[],
+    pubkey: string
+  ) {
     const relayListEvs: NostrEvent[] = [];
     const evIter = this.#nostrFetcher.fetchLastEventPerKey(
       "kinds",
@@ -79,7 +106,6 @@ export class NostrMetadataRepository {
     );
     for await (const { key: kind, event } of evIter) {
       console.log(kind, event);
-
       switch (kind) {
         case 0:
           this.#profile =
@@ -96,8 +122,24 @@ export class NostrMetadataRepository {
       }
     }
     this.#relaysFromEvents = parseRelayList(relayListEvs);
+  }
 
-    console.log("finished resync-ing nostr metadata repo");
+  private async resyncUserStatus(bootstrapRelays: string[], pubkey: string) {
+    const statusEv = await this.#nostrFetcher.fetchLastEvent(
+      bootstrapRelays,
+      { kinds: [30315], authors: [pubkey], "#d": ["general"] },
+      {}
+    );
+    if (statusEv === undefined) {
+      this.#userStatus.update("");
+      return;
+    }
+
+    console.log(statusEv);
+
+    const exp = getExpiration(statusEv);
+    this.#userStatus.update(statusEv.content, exp);
+    return;
   }
 
   async clear() {
@@ -106,10 +148,50 @@ export class NostrMetadataRepository {
     // clear all metadata
     this.#profile = {};
     this.#relaysFromEvents = {};
+    this.#userStatus.clear();
   }
 
   dispose() {
     this.#nostrFetcher.shutdown();
+  }
+}
+
+class UserStatus {
+  #status: string = "";
+  #expTimer: NodeJS.Timeout | undefined;
+
+  get value() {
+    return this.#status;
+  }
+
+  update(status: string, expiration?: number) {
+    this.#status = status;
+
+    if (this.#expTimer !== undefined) {
+      clearTimeout(this.#expTimer);
+    }
+
+    if (expiration === undefined) {
+      return;
+    }
+
+    const dur = expiration - currUnixtime();
+    if (dur <= 0) {
+      // already expired!
+      this.#status = "";
+    }
+    this.#expTimer = setTimeout(() => {
+      console.log("user status expired:", this.#status);
+      this.#status = "";
+    }, dur * 1000);
+  }
+
+  clear() {
+    this.#status = "";
+    if (this.#expTimer !== undefined) {
+      clearTimeout(this.#expTimer);
+      this.#expTimer = undefined;
+    }
   }
 }
 
@@ -166,11 +248,21 @@ const parseRelayListInKind10002 = (ev: NostrEvent): Nip07.GetRelayResult => {
             return;
           default:
             console.warn("invalid relay type in kind 10002 event:", relayType);
+            undefined;
         }
       }
     });
 
   return res;
+};
+
+const getExpiration = (ev: NostrEvent): number | undefined => {
+  const s = ev.tags.find((t) => t[0] === "expiration")?.[1] ?? undefined;
+  if (s === undefined) {
+    return undefined;
+  }
+  const exp = Number(s);
+  return !isNaN(exp) ? exp : undefined;
 };
 
 const regexp32BytesHexStr = /^[a-f0-9]{64}$/;
