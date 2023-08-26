@@ -2,6 +2,11 @@
 
 A Nostr client in VSCode!
 
+## Features
+
+- Posting text notes
+- Updating user status ([NIP-38](https://github.com/nostr-protocol/nips/blob/master/38.md))
+
 ## Usage
 
 ### 🔑 Prerequisite: Setting Private Key
@@ -9,6 +14,10 @@ First, set your Nostr private key. Open the command palette then run `Nostr: Set
 
 ### 📝 Posting Text Notes
 Just run `Nostr: Post Text` command!
+
+### 👨‍💻 Updating User Status
+Run `Nostr: Update Status`, input your current status, and select the time to expiration. That's it!
+
 
 ### 🧭 Setting Bootstrap Relays and Sync-ing Account Metadata
 If posting notes doesn't seem to work, you may want to setup "bootstrap relays", from which your account metadata (e.g. relays to write) are fetched.
