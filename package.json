@@ -30,33 +30,33 @@
       {
         "category": "Nostr",
         "command": "nostr-client.postText",
-        "title": "Post Text"
+        "title": "%nostr-client.postText.title%"
       },
       {
         "category": "Nostr",
         "command": "nostr-client.updateStatus",
-        "title": "Update Status"
+        "title": "%nostr-client.updateStatus.title%"
       },
       {
         "category": "Nostr",
         "command": "nostr-client.setPrivKey",
-        "title": "Set Private Key"
+        "title": "%nostr-client.setPrivKey.title%"
       },
       {
         "category": "Nostr",
         "command": "nostr-client.clearPrivKey",
-        "title": "Clear Private Key"
+        "title": "%nostr-client.clearPrivKey.title%"
       },
       {
         "category": "Nostr",
         "command": "nostr-client.syncMetadata",
-        "title": "Synchronize Account Metadata"
+        "title": "%nostr-client.syncMetadata.title%"
       }
     ],
     "configuration": {
       "title": "Nostr Client",
       "properties": {
-        "nostrClient.bootstrapRelays": {
+        "nostrClient.bootstrapRelays": {  
           "type": "array",
           "items": {
             "type": "string",
@@ -66,7 +66,7 @@
             "wss://relay.damus.io",
             "wss://relayable.org"
           ],
-          "markdownDescription": "Relay URLs to get metadata (your profile, relays to use etc...) of your account.  Set your daily-use relays here."
+          "markdownDescription": "%nostrClient.bootstrapRelays.markdownDescription%"
         },
         "nostrClient.additionalWriteRelays": {
           "type": "array",
@@ -75,7 +75,7 @@
             "format": "uri"
           },
           "default": [],
-          "markdownDescription": "Relay URLs to additionally send your posts.  Write relays configured by events (kind 3 & 10002) are also used."
+          "markdownDescription": "%nostrClient.additionalWriteRelays.markdownDescription%"
         }
       }
     }
@@ -96,6 +96,7 @@
     "@types/webpack-env": "^1.18.1",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
+    "@vscode/l10n-dev": "^0.0.29",
     "@vscode/test-web": "^0.0.44",
     "assert": "^2.0.0",
     "eslint": "^8.41.0",
