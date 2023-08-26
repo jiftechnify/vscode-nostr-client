@@ -4,6 +4,7 @@ import * as vscode from "vscode";
 
 import { NostrFetcher } from "nostr-fetch";
 import { createRxNostr } from "rx-nostr";
+import { currUnixtime } from "./utils";
 
 let metadataRepo: NostrMetadataRepository;
 const rxNostr = createRxNostr();
@@ -32,6 +33,7 @@ export function deactivate() {
 
 const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.postText", handlePostText],
+  ["nostr-client.updateStatus", handleUpdateStatus],
   ["nostr-client.setPrivKey", handleSetPrivateKey],
   ["nostr-client.clearPrivKey", handleClearPrivateKey],
   ["nostr-client.syncMetadata", handleSyncMetadata],
@@ -78,17 +80,72 @@ async function handlePostText() {
 
   const content = await vscode.window.showInputBox({
     title: "Text to post",
+    placeHolder: "What's on your mind?",
     ignoreFocusOut: true,
   });
   if (!content) {
     return;
   }
 
-  rxNostr
-    .send({ content, kind: 1 }, { seckey: privkey })
-    .subscribe((packet) => {
-      console.log(packet);
-    });
+  const ev = {
+    kind: 1,
+    content,
+  };
+  console.log("sending event: %O", ev);
+  rxNostr.send(ev, { seckey: privkey }).subscribe((packet) => {
+    console.log(packet);
+  });
+}
+
+const secsUntilExpirationTable = new Map<string, number | undefined>([
+  ["Don't clear", undefined],
+  ["10 Minutes", 10 * 60],
+  ["30 Minutes", 30 * 60],
+  ["1 Hour", 60 * 60],
+  ["4 Hours", 4 * 60 * 60],
+  ["1 Day", 24 * 60 * 60],
+]);
+
+async function handleUpdateStatus() {
+  const privkey = await metadataRepo.getPrivateKey();
+  if (privkey === undefined) {
+    vscode.window.showErrorMessage("Set your Nostr private key first!");
+    return;
+  }
+
+  const status = await vscode.window.showInputBox({
+    title: "Set your status",
+    value: metadataRepo.userStatus,
+    ignoreFocusOut: true,
+  });
+  if (!status || status === metadataRepo.userStatus) {
+    return;
+  }
+
+  const untilExpStr = await vscode.window.showQuickPick(
+    [...secsUntilExpirationTable.keys()],
+    { title: "Clear status after..." }
+  );
+  if (!untilExpStr) {
+    return;
+  }
+  const untilExpSecs = secsUntilExpirationTable.get(untilExpStr);
+  const exp =
+    untilExpSecs !== undefined ? currUnixtime() + untilExpSecs : undefined;
+
+  const statusEv = {
+    kind: 30315,
+    content: status,
+    tags: [
+      ["d", "general"],
+      ...(exp !== undefined ? [["expiration", String(exp)]] : []),
+    ],
+  };
+  console.log("sending event: %O", statusEv);
+  rxNostr.send(statusEv, { seckey: privkey }).subscribe((packet) => {
+    console.log(packet);
+  });
+  metadataRepo.updateUserStatus(status, exp);
 }
 
 async function handleSyncMetadata() {

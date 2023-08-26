@@ -34,6 +34,11 @@
       },
       {
         "category": "Nostr",
+        "command": "nostr-client.updateStatus",
+        "title": "Update Status"
+      },
+      {
+        "category": "Nostr",
         "command": "nostr-client.setPrivKey",
         "title": "Set Private Key"
       },
@@ -103,6 +108,7 @@
     "webpack-cli": "^5.1.1"
   },
   "dependencies": {
+    "date-fns": "^2.30.0",
     "nostr-fetch": "^0.12.2",
     "nostr-tools": "^1.14.2",
     "rx-nostr": "https://github.com/jiftechnify/rx-nostr#patched"
