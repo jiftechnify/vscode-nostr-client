@@ -39,7 +39,7 @@
       },
       {
         "category": "Nostr",
-        "command": "nostr-client.clearPrivkey",
+        "command": "nostr-client.clearPrivKey",
         "title": "Clear Private Key"
       },
       {
