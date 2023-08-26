@@ -1,0 +1,20 @@
+{
+  "Yes": "はい",
+  "No": "いいえ",
+  "Private key is already set. Is it OK to overwrite?": "すでに秘密鍵が設定されています。上書きしてもよろしいですか?",
+  "Input your Nostr private key": "Nostr 秘密鍵を入力",
+  "hex or nsec": "hex or nsec",
+  "Invalid private key!": "秘密鍵の形式が正しくありません。",
+  "Saved your Nostr private key!": "Nostr 秘密鍵を保存しました。",
+  "Set your Nostr private key first!": "Nostr 秘密鍵が設定されていません。",
+  "Text to post": "投稿内容",
+  "What's on your mind?": "何か思いついた?",
+  "Don't clear": "クリアしない",
+  "10 Minutes": "10分",
+  "30 Minutes": "30分",
+  "1 Hour": "1時間",
+  "4 Hours": "4時間",
+  "1 Day": "1日",
+  "Set your status": "ステータスを設定",
+  "Clear status after...": "ステータスをクリアするまでの時間を設定"
+}

@@ -1,0 +1,9 @@
+{
+  "nostr-client.postText.title": "Post Text",
+  "nostr-client.updateStatus.title": "Update Status",
+  "nostr-client.setPrivKey.title": "Set Private Key",
+  "nostr-client.clearPrivKey.title": "Clear Private Key",
+  "nostr-client.syncMetadata.title": "Synchronize Account Metadata",
+  "nostrClient.bootstrapRelays.markdownDescription": "Relay URLs to get metadata (your profile, relays to use etc...) of your account.  Set your daily-use relays here.",
+  "nostrClient.additionalWriteRelays.markdownDescription": "Relay URLs to additionally send your posts.  Write relays configured by events (kind 3 & 10002) are also used."
+}
