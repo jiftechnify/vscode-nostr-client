@@ -1,6 +1,7 @@
 import { NostrMetadataRepository, toHexPrivateKey } from "./nostr";
 
 import * as vscode from "vscode";
+import { l10n } from "vscode";
 
 import { NostrFetcher } from "nostr-fetch";
 import { createRxNostr } from "rx-nostr";
@@ -40,20 +41,25 @@ const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.debug", handleDebug],
 ];
 
+const yesNoChoices: (vscode.QuickPickItem & { ok: boolean })[] = [
+  { label: l10n.t("Yes"), ok: true },
+  { label: l10n.t("No"), ok: false },
+];
+
 async function handleSetPrivateKey() {
   if (await metadataRepo.isPrivatekeySet()) {
-    const sel = await vscode.window.showQuickPick(["Yes", "No"], {
-      title: "Private key is already set. Is it OK to overwrite?",
+    const sel = await vscode.window.showQuickPick(yesNoChoices, {
+      title: l10n.t("Private key is already set. Is it OK to overwrite?"),
     });
-    if (sel === "No") {
+    if (sel === undefined || !sel.ok) {
       return;
     }
   }
 
   const input = await vscode.window.showInputBox({
-    title: "Input your Nostr private key",
+    title: l10n.t("Input your Nostr private key"),
     password: true,
-    placeHolder: "hex or nsec",
+    placeHolder: l10n.t("hex or nsec"),
     ignoreFocusOut: true,
   });
   if (!input) {
@@ -61,11 +67,11 @@ async function handleSetPrivateKey() {
   }
   const privkey = toHexPrivateKey(input);
   if (privkey === undefined) {
-    vscode.window.showErrorMessage("Invalid private key!");
+    vscode.window.showErrorMessage(l10n.t("Invalid private key!"));
     return;
   }
   await metadataRepo.updatePrivateKey(privkey);
-  vscode.window.showInformationMessage("Saved your Nostr private key!");
+  vscode.window.showInformationMessage(l10n.t("Saved your Nostr private key!"));
 
   await metadataRepo.resync();
   await rxNostr.switchRelays(metadataRepo.relays);
@@ -74,13 +80,13 @@ async function handleSetPrivateKey() {
 async function handlePostText() {
   const privkey = await metadataRepo.getPrivateKey();
   if (privkey === undefined) {
-    vscode.window.showErrorMessage("Set your Nostr private key first!");
+    vscode.window.showErrorMessage(l10n.t("Set your Nostr private key first!"));
     return;
   }
 
   const content = await vscode.window.showInputBox({
-    title: "Text to post",
-    placeHolder: "What's on your mind?",
+    title: l10n.t("Text to post"),
+    placeHolder: l10n.t("What's on your mind?"),
     ignoreFocusOut: true,
   });
   if (!content) {
@@ -97,24 +103,26 @@ async function handlePostText() {
   });
 }
 
-const secsUntilExpirationTable = new Map<string, number | undefined>([
-  ["Don't clear", undefined],
-  ["10 Minutes", 10 * 60],
-  ["30 Minutes", 30 * 60],
-  ["1 Hour", 60 * 60],
-  ["4 Hours", 4 * 60 * 60],
-  ["1 Day", 24 * 60 * 60],
-]);
+const secsUntilExpirationChoices: (vscode.QuickPickItem & {
+  dur: number | undefined;
+})[] = [
+  { label: l10n.t("Don't clear"), dur: undefined },
+  { label: l10n.t("10 Minutes"), dur: 10 * 60 },
+  { label: l10n.t("30 Minutes"), dur: 30 * 60 },
+  { label: l10n.t("1 Hour"), dur: 60 * 60 },
+  { label: l10n.t("4 Hours"), dur: 4 * 60 * 60 },
+  { label: l10n.t("1 Day"), dur: 24 * 60 * 60 },
+];
 
 async function handleUpdateStatus() {
   const privkey = await metadataRepo.getPrivateKey();
   if (privkey === undefined) {
-    vscode.window.showErrorMessage("Set your Nostr private key first!");
+    vscode.window.showErrorMessage(l10n.t("Set your Nostr private key first!"));
     return;
   }
 
   const status = await vscode.window.showInputBox({
-    title: "Set your status",
+    title: l10n.t("Set your status"),
     value: metadataRepo.userStatus,
     ignoreFocusOut: true,
   });
@@ -122,16 +130,15 @@ async function handleUpdateStatus() {
     return;
   }
 
-  const untilExpStr = await vscode.window.showQuickPick(
-    [...secsUntilExpirationTable.keys()],
-    { title: "Clear status after..." }
+  const selection = await vscode.window.showQuickPick(
+    secsUntilExpirationChoices,
+    { title: l10n.t("Clear status after...") }
   );
-  if (!untilExpStr) {
+  if (selection === undefined) {
     return;
   }
-  const untilExpSecs = secsUntilExpirationTable.get(untilExpStr);
   const exp =
-    untilExpSecs !== undefined ? currUnixtime() + untilExpSecs : undefined;
+    selection.dur !== undefined ? currUnixtime() + selection.dur : undefined;
 
   const statusEv = {
     kind: 30315,
