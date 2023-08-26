@@ -46,6 +46,10 @@ export class NostrMetadataRepository {
     return this.#ctx.secrets.get(KEY_NOSTR_PRIVATE_KEY);
   }
 
+  async isPrivatekeySet(): Promise<boolean> {
+    return (await this.getPrivateKey()) !== undefined;
+  }
+
   async getPublicKey(): Promise<string | undefined> {
     const privkey = await this.getPrivateKey();
     if (privkey === undefined) {
