@@ -7,6 +7,8 @@
   "Invalid private key!": "秘密鍵の形式が正しくありません。",
   "Saved your Nostr private key!": "Nostr 秘密鍵を保存しました。",
   "Set your Nostr private key first!": "Nostr 秘密鍵が設定されていません。",
+  "Set Private Key": "秘密鍵を設定",
+  "Dismiss": "無視",
   "Text to post": "投稿内容",
   "What's on your mind?": "何か思いついた?",
   "Don't clear": "クリアしない",

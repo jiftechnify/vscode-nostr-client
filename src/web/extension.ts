@@ -70,17 +70,15 @@ async function handleSetPrivateKey() {
     vscode.window.showErrorMessage(l10n.t("Invalid private key!"));
     return;
   }
-  await metadataRepo.updatePrivateKey(privkey);
-  vscode.window.showInformationMessage(l10n.t("Saved your Nostr private key!"));
 
+  await metadataRepo.updatePrivateKey(privkey);
   await metadataRepo.resync();
   await rxNostr.switchRelays(metadataRepo.relays);
 }
 
 async function handlePostText() {
-  const privkey = await metadataRepo.getPrivateKey();
-  if (privkey === undefined) {
-    vscode.window.showErrorMessage(l10n.t("Set your Nostr private key first!"));
+  const privkey = await checkPrivateKeyFlow();
+  if (!privkey) {
     return;
   }
 
@@ -115,9 +113,8 @@ const secsUntilExpirationChoices: (vscode.QuickPickItem & {
 ];
 
 async function handleUpdateStatus() {
-  const privkey = await metadataRepo.getPrivateKey();
-  if (privkey === undefined) {
-    vscode.window.showErrorMessage(l10n.t("Set your Nostr private key first!"));
+  const privkey = await checkPrivateKeyFlow();
+  if (!privkey) {
     return;
   }
 
@@ -171,3 +168,28 @@ async function handleDebug() {
   console.log(metadataRepo.relays);
   console.log(rxNostr.getAllRelayState());
 }
+
+const buttonsInNoPrivKeyMsg: (vscode.MessageItem & { ok: boolean })[] = [
+  { title: l10n.t("Set Private Key"), ok: true },
+  { title: l10n.t("Dismiss"), ok: false },
+];
+
+// checks private key is set. if not, show error message with "Set Private Key" button.
+// when the button is clicked, execute setPrivKey command.
+const checkPrivateKeyFlow = async (): Promise<string | undefined> => {
+  const privkey = await metadataRepo.getPrivateKey();
+  if (privkey === undefined) {
+    const sel = await vscode.window.showErrorMessage(
+      l10n.t("Set your Nostr private key first!"),
+      ...buttonsInNoPrivKeyMsg
+    );
+    if (sel === undefined || !sel.ok) {
+      return undefined;
+    }
+    // "Set Private Key" is selected -> run setPrivKey
+    await vscode.commands.executeCommand("nostr-client.setPrivKey");
+    return undefined;
+  }
+
+  return privkey;
+};
