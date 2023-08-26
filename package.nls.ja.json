@@ -4,6 +4,6 @@
   "nostr-client.setPrivKey.title": "秘密鍵を設定",
   "nostr-client.clearPrivKey.title": "秘密鍵を消去",
   "nostr-client.syncMetadata.title": "アカウントメタデータを再取得",
-  "nostrClient.bootstrapRelays.markdownDescription": "アカウントのメタデータ(プロフィール、接続先リレーなど)の取得時に使用するリレーのURL。普段からよく利用しているリレーを設定してください。",
+  "nostrClient.bootstrapRelays.markdownDescription": "アカウントのメタデータ(プロフィール、接続先リレーなど)の取得時に使用するリレーのURL。普段からよく利用しているリレーを設定してください。\n\nヒント: この設定を変更したら、`Nostr: アカウントメタデータを再取得` でメタデータを最新状態に更新することをおすすめします。",
   "nostrClient.additionalWriteRelays.markdownDescription": "投稿の送信先として追加するリレーのURL。イベント(kind 3・10002)で指定された書き込みリレーに加えて、これらのリレーにも投稿を送信します。"
 }
