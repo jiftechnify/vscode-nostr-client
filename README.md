@@ -18,6 +18,8 @@ Just run `Nostr: Post Text` command!
 ### 👨‍💻 Updating User Status
 Run `Nostr: Update Status`, input your current status, and select the time to expiration. That's it!
 
+With `Nostr: Update Status with Link`, you can also update your status with a link.
+
 
 ### 🧭 Setting Bootstrap Relays and Sync-ing Account Metadata
 If posting notes doesn't seem to work, you may want to setup "bootstrap relays", from which your account metadata (e.g. relays to write) are fetched.
