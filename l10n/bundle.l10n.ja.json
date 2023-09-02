@@ -5,7 +5,6 @@
   "Input your Nostr private key": "Nostr 秘密鍵を入力",
   "hex or nsec": "hex or nsec",
   "Invalid private key!": "秘密鍵の形式が正しくありません。",
-  "Saved your Nostr private key!": "Nostr 秘密鍵を保存しました。",
   "Set your Nostr private key first!": "Nostr 秘密鍵が設定されていません。",
   "Set Private Key": "秘密鍵を設定",
   "Dismiss": "無視",
@@ -18,5 +17,6 @@
   "4 Hours": "4時間",
   "1 Day": "1日",
   "Set your status": "ステータスを設定",
+  "Set link URL": "リンクURLを設定",
   "Clear status after...": "ステータスをクリアするまでの時間を設定"
 }

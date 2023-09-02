@@ -35,6 +35,7 @@ export function deactivate() {
 const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.postText", handlePostText],
   ["nostr-client.updateStatus", handleUpdateStatus],
+  ["nostr-client.updateStatusWithLink", handleUpdateWithLink],
   ["nostr-client.setPrivKey", handleSetPrivateKey],
   ["nostr-client.clearPrivKey", handleClearPrivateKey],
   ["nostr-client.syncMetadata", handleSyncMetadata],
@@ -112,44 +113,101 @@ const secsUntilExpirationChoices: (vscode.QuickPickItem & {
   { label: l10n.t("1 Day"), dur: 24 * 60 * 60 },
 ];
 
+const getStatusInput = async () => {
+  return vscode.window.showInputBox({
+    title: l10n.t("Set your status"),
+    value: metadataRepo.userStatus.status,
+    ignoreFocusOut: true,
+  });
+};
+
+const getStatusExpirationInput = async () => {
+  return await vscode.window.showQuickPick(secsUntilExpirationChoices, {
+    title: l10n.t("Clear status after..."),
+  });
+};
+
+const composeUserStatus = ({
+  status,
+  linkUrl = "",
+  expiration: exp,
+}: {
+  status: string;
+  linkUrl?: string;
+  expiration?: number;
+}) => {
+  return {
+    kind: 30315,
+    content: status,
+    tags: [
+      ["d", "general"],
+      ...(linkUrl !== "" ? [["r", linkUrl]] : []),
+      ...(exp !== undefined ? [["expiration", String(exp)]] : []),
+    ],
+  };
+};
+
 async function handleUpdateStatus() {
   const privkey = await checkPrivateKeyFlow();
   if (!privkey) {
     return;
   }
 
-  const status = await vscode.window.showInputBox({
-    title: l10n.t("Set your status"),
-    value: metadataRepo.userStatus,
-    ignoreFocusOut: true,
-  });
-  if (!status || status === metadataRepo.userStatus) {
+  const status = await getStatusInput();
+  if (!status) {
     return;
   }
 
-  const selection = await vscode.window.showQuickPick(
-    secsUntilExpirationChoices,
-    { title: l10n.t("Clear status after...") }
-  );
-  if (selection === undefined) {
+  const expInput = await getStatusExpirationInput();
+  if (expInput === undefined) {
     return;
   }
-  const exp =
-    selection.dur !== undefined ? currUnixtime() + selection.dur : undefined;
+  const expiration =
+    expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
 
-  const statusEv = {
-    kind: 30315,
-    content: status,
-    tags: [
-      ["d", "general"],
-      ...(exp !== undefined ? [["expiration", String(exp)]] : []),
-    ],
-  };
+  const statusEv = composeUserStatus({ status, expiration });
   console.log("sending event: %O", statusEv);
   rxNostr.send(statusEv, { seckey: privkey }).subscribe((packet) => {
     console.log(packet);
   });
-  metadataRepo.updateUserStatus(status, exp);
+
+  metadataRepo.updateUserStatus({ status, expiration });
+}
+
+async function handleUpdateWithLink() {
+  const privkey = await checkPrivateKeyFlow();
+  if (!privkey) {
+    return;
+  }
+
+  const status = await getStatusInput();
+  if (!status) {
+    return;
+  }
+
+  const linkUrl = await vscode.window.showInputBox({
+    title: l10n.t("Set link URL"),
+    value: metadataRepo.userStatus.linkUrl,
+    ignoreFocusOut: true,
+  });
+  if (!linkUrl) {
+    return;
+  }
+
+  const expInput = await getStatusExpirationInput();
+  if (expInput === undefined) {
+    return;
+  }
+  const expiration =
+    expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
+
+  const statusEv = composeUserStatus({ status, linkUrl, expiration });
+  console.log("sending event: %O", statusEv);
+  rxNostr.send(statusEv, { seckey: privkey }).subscribe((packet) => {
+    console.log(packet);
+  });
+
+  metadataRepo.updateUserStatus({ status, linkUrl, expiration });
 }
 
 async function handleSyncMetadata() {
