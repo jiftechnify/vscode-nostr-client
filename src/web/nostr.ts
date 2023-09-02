@@ -69,8 +69,16 @@ export class NostrMetadataRepository {
     return this.#userStatus.value;
   }
 
-  updateUserStatus(status: string, expiration?: number) {
-    this.#userStatus.update(status, expiration);
+  updateUserStatus({
+    status,
+    linkUrl = "",
+    expiration,
+  }: {
+    status: string;
+    linkUrl?: string;
+    expiration?: number;
+  }) {
+    this.#userStatus.update(status, linkUrl, expiration);
   }
 
   async resync() {
@@ -131,14 +139,15 @@ export class NostrMetadataRepository {
       {}
     );
     if (statusEv === undefined) {
-      this.#userStatus.update("");
+      this.#userStatus.clear();
       return;
     }
 
     console.log(statusEv);
 
-    const exp = getExpiration(statusEv);
-    this.#userStatus.update(statusEv.content, exp);
+    const linkUrl = getTagValue(statusEv, "r");
+    const expiration = getExpiration(statusEv);
+    this.#userStatus.update(statusEv.content, linkUrl, expiration);
     return;
   }
 
@@ -158,17 +167,20 @@ export class NostrMetadataRepository {
 
 class UserStatus {
   #status: string = "";
+  #linkUrl: string = "";
   #expTimer: NodeJS.Timeout | undefined;
 
   get value() {
-    return this.#status;
+    return { status: this.#status, linkUrl: this.#linkUrl };
   }
 
-  update(status: string, expiration?: number) {
+  update(status: string, linkUrl: string, expiration?: number) {
     this.#status = status;
+    this.#linkUrl = linkUrl;
 
     if (this.#expTimer !== undefined) {
       clearTimeout(this.#expTimer);
+      this.#expTimer = undefined;
     }
 
     if (expiration === undefined) {
@@ -178,7 +190,7 @@ class UserStatus {
     const dur = expiration - currUnixtime();
     if (dur <= 0) {
       // already expired!
-      this.#status = "";
+      this.clear();
     }
     this.#expTimer = setTimeout(() => {
       console.log("user status expired:", this.#status);
@@ -188,6 +200,7 @@ class UserStatus {
 
   clear() {
     this.#status = "";
+    this.#linkUrl = "";
     if (this.#expTimer !== undefined) {
       clearTimeout(this.#expTimer);
       this.#expTimer = undefined;
@@ -256,12 +269,15 @@ const parseRelayListInKind10002 = (ev: NostrEvent): Nip07.GetRelayResult => {
   return res;
 };
 
+const getTagValue = (ev: NostrEvent, name: string): string =>
+  ev.tags.find((t) => t[0] === name)?.[1] ?? "";
+
 const getExpiration = (ev: NostrEvent): number | undefined => {
-  const s = ev.tags.find((t) => t[0] === "expiration")?.[1] ?? undefined;
-  if (s === undefined) {
+  const expStr = getTagValue(ev, "expiration");
+  if (expStr === "") {
     return undefined;
   }
-  const exp = Number(s);
+  const exp = Number(expStr);
   return !isNaN(exp) ? exp : undefined;
 };
 

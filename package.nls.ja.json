@@ -1,6 +1,7 @@
 {
   "nostr-client.postText.title": "テキストを投稿",
   "nostr-client.updateStatus.title": "ステータスを更新",
+  "nostr-client.updateStatusWithLink.title": "ステータスを更新(リンクつき)",
   "nostr-client.setPrivKey.title": "秘密鍵を設定",
   "nostr-client.clearPrivKey.title": "秘密鍵を消去",
   "nostr-client.syncMetadata.title": "アカウントメタデータを再取得",

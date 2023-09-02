@@ -1,6 +1,7 @@
 {
   "nostr-client.postText.title": "Post Text",
   "nostr-client.updateStatus.title": "Update Status",
+  "nostr-client.updateStatusWithLink.title": "Update Status with Link",
   "nostr-client.setPrivKey.title": "Set Private Key",
   "nostr-client.clearPrivKey.title": "Clear Private Key",
   "nostr-client.syncMetadata.title": "Synchronize Account Metadata",

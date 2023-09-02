@@ -40,6 +40,11 @@
       },
       {
         "category": "Nostr",
+        "command": "nostr-client.updateStatusWithLink",
+        "title": "%nostr-client.updateStatusWithLink.title%"
+      },
+      {
+        "category": "Nostr",
         "command": "nostr-client.setPrivKey",
         "title": "%nostr-client.setPrivKey.title%"
       },
