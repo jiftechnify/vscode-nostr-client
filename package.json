@@ -95,7 +95,7 @@
     "package-web": "yarn esbuild-base --minify",
     "vscode:prepublish": "yarn run package-web",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. .",
-    "lint": "eslint src --ext ts"
+    "lint": "tsc && eslint src --ext ts"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
