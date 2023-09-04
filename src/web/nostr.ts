@@ -168,7 +168,7 @@ export class NostrMetadataRepository {
 class UserStatus {
   #status: string = "";
   #linkUrl: string = "";
-  #expTimer: NodeJS.Timeout | undefined;
+  #expTimer: number | undefined;
 
   get value() {
     return { status: this.#status, linkUrl: this.#linkUrl };
