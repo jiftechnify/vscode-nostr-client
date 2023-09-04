@@ -11,8 +11,7 @@
 				"isDefault": true
 			},
 			"problemMatcher": [
-				"$ts-webpack",
-				"$tslint-webpack"
+        "$esbuild"
 			]
 		},
 		{
@@ -21,8 +20,7 @@
 			"group": "build",
 			"isBackground": true,
 			"problemMatcher": [
-				"$ts-webpack-watch",
-				"$tslint-webpack-watch"
+				"$esbuild-watch",
 			]
 		}
 	]
