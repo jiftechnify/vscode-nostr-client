@@ -26,7 +26,7 @@ export async function deactivate() {
 const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.postText", handlePostText],
   ["nostr-client.updateStatus", handleUpdateStatus],
-  ["nostr-client.updateStatusWithLink", handleUpdateWithLink],
+  ["nostr-client.updateStatusWithLink", handleUpdateStatusWithLink],
   ["nostr-client.setPrivKey", handleSetPrivateKey],
   ["nostr-client.clearPrivKey", handleClearPrivateKey],
   ["nostr-client.syncMetadata", handleSyncMetadata],
@@ -131,7 +131,7 @@ async function handleUpdateStatus() {
   await nostrSystem.updateUserStatus({ status, linkUrl: "", expiration });
 }
 
-async function handleUpdateWithLink() {
+async function handleUpdateStatusWithLink() {
   const privkey = await checkPrivateKeyFlow();
   if (!privkey) {
     return;
@@ -158,7 +158,7 @@ async function handleUpdateWithLink() {
   const expiration =
     expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
 
-  await nostrSystem.updateUserStatus({ status, linkUrl: "", expiration });
+  await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
 }
 
 async function handleSyncMetadata() {
