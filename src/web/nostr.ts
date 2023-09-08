@@ -4,7 +4,13 @@ import { rxNostrAdapter } from "@nostr-fetch/adapter-rx-nostr";
 import { NostrFetcher } from "nostr-fetch";
 import { getPublicKey, nip19 } from "nostr-tools";
 import { EventParameters, Nip07, Event as NostrEvent } from "nostr-typedef";
-import { RxNostr, createRxNostr } from "rx-nostr";
+import {
+  RxNostr,
+  createRxForwardReq,
+  createRxNostr,
+  uniq,
+  verify,
+} from "rx-nostr";
 
 import { currUnixtime } from "./utils";
 
@@ -67,6 +73,9 @@ export class NostrSystem {
     const syncMetadata =
       currUnixtime() - sys.#metaLastUpdated > metadataCacheMaxAge;
     await sys.syncStatesWithRelays({ syncMetadata });
+
+    await sys.startStatesSyncSubscription();
+
     return sys;
   }
 
@@ -161,39 +170,62 @@ export class NostrSystem {
     this.#userStatus.update(status, linkUrl, exp);
   }
 
-  /* state lifecycle */
-  private async restoreMetadataFromCache() {
-    const cache = this.#ctx.globalState.get<SerializedMetadataCache>(
-      GLOBAL_STATE_KEYS.metadataCache
-    );
-    console.log("metadata cache:", cache);
-    if (cache === undefined) {
+  /* subscription for states syncronization */
+  private async startStatesSyncSubscription() {
+    const pubkey = await this.getPublicKey();
+    if (pubkey === undefined) {
+      console.log("private key is not set");
       return;
     }
-    this.#metaLastUpdated = cache.lastUpdated;
-    this.#profile = cache.profile;
-    this.#relaysFromEvents = cache.relays;
 
-    if (Object.getOwnPropertyNames(this.#relaysFromEvents).length > 0) {
-      await this.#rxNostr.switchRelays(this.#relaysFromEvents);
-    }
+    const req = createRxForwardReq();
+    this.#rxNostr
+      .use(req)
+      .pipe(verify(), uniq())
+      .subscribe(async ({ event }) => {
+        console.log("received from relays", event);
+
+        let relayListUpdated = false;
+        switch (event.kind) {
+          case 0:
+            this.#profile = JSON.parse(event.content) as Record<
+              string,
+              unknown
+            >;
+            break;
+
+          case 3:
+            // TODO: update follow list
+            this.#relaysFromEvents = parseRelayListInKind3(event);
+            relayListUpdated = true;
+            break;
+
+          case 10002:
+            this.#relaysFromEvents = parseRelayListInKind10002(event);
+            relayListUpdated = true;
+            break;
+
+          case 30315: {
+            const linkUrl = getTagValue(event, "r");
+            const expiration = getExpiration(event);
+            this.#userStatus.update(event.content, linkUrl, expiration);
+            break;
+          }
+        }
+
+        if (relayListUpdated) {
+          await this.#rxNostr.switchRelays(this.relays);
+        }
+      });
+
+    const now = currUnixtime();
+    req.emit([
+      { kinds: [0, 3, 10002], authors: [pubkey], since: now },
+      { kinds: [30315], authors: [pubkey], "#d": ["general"], since: now },
+    ]);
   }
 
-  async saveMetadataToCache() {
-    const cache = {
-      lastUpdated: this.#metaLastUpdated,
-      profile: this.#profile,
-      relays: this.#relaysFromEvents,
-    };
-
-    console.log("saving metadata to cache: %O", cache);
-    await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.metadataCache, {
-      lastUpdated: this.#metaLastUpdated,
-      profile: this.#profile,
-      relays: this.#relaysFromEvents,
-    });
-  }
-
+  /* oneshot data syncronization */
   async syncStatesWithRelays({ syncMetadata }: { syncMetadata: boolean }) {
     const pubkey = await this.getPublicKey();
     if (pubkey === undefined) {
@@ -285,6 +317,39 @@ export class NostrSystem {
 
     console.log("finished sync-ing user status with relays");
     return;
+  }
+
+  /* lifecycle */
+  private async restoreMetadataFromCache() {
+    const cache = this.#ctx.globalState.get<SerializedMetadataCache>(
+      GLOBAL_STATE_KEYS.metadataCache
+    );
+    console.log("metadata cache:", cache);
+    if (cache === undefined) {
+      return;
+    }
+    this.#metaLastUpdated = cache.lastUpdated;
+    this.#profile = cache.profile;
+    this.#relaysFromEvents = cache.relays;
+
+    if (Object.getOwnPropertyNames(this.#relaysFromEvents).length > 0) {
+      await this.#rxNostr.switchRelays(this.#relaysFromEvents);
+    }
+  }
+
+  async saveMetadataToCache() {
+    const cache = {
+      lastUpdated: this.#metaLastUpdated,
+      profile: this.#profile,
+      relays: this.#relaysFromEvents,
+    };
+
+    console.log("saving metadata to cache: %O", cache);
+    await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.metadataCache, {
+      lastUpdated: this.#metaLastUpdated,
+      profile: this.#profile,
+      relays: this.#relaysFromEvents,
+    });
   }
 
   async clear() {
