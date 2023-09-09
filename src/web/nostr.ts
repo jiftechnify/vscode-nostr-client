@@ -8,9 +8,11 @@ import {
   RxNostr,
   createRxForwardReq,
   createRxNostr,
+  getSignedEvent,
   uniq,
   verify,
 } from "rx-nostr";
+import { filter } from "rxjs";
 
 import { currUnixtime } from "./utils";
 
@@ -48,6 +50,7 @@ export class NostrSystem {
   #ctx: vscode.ExtensionContext;
   #rxNostr: RxNostr;
   #nostrFetcher: NostrFetcher;
+  #sentEventIds: Set<string> = new Set();
 
   // account metadata
   #metaLastUpdated: number = 0;
@@ -107,8 +110,12 @@ export class NostrSystem {
       return;
     }
 
+    // record the id of event about to send
+    const signed = await getSignedEvent(ev, privkey);
+    this.#sentEventIds.add(signed.id);
+
     console.log("sending event: %O", ev);
-    this.#rxNostr.send(ev, { seckey: privkey }).subscribe((packet) => {
+    this.#rxNostr.send(signed).subscribe((packet) => {
       console.log(packet);
     });
   }
@@ -181,7 +188,11 @@ export class NostrSystem {
     const req = createRxForwardReq();
     this.#rxNostr
       .use(req)
-      .pipe(verify(), uniq())
+      .pipe(
+        verify(),
+        uniq(),
+        filter(({ event }) => !this.#sentEventIds.has(event.id)) // filter out events sent by this client
+      )
       .subscribe(async ({ event }) => {
         console.log("received from relays", event);
 
