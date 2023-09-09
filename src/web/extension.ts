@@ -59,7 +59,12 @@ async function handleSetPrivateKey() {
   }
   const privkey = toHexPrivateKey(input);
   if (privkey === undefined) {
-    vscode.window.showErrorMessage(l10n.t("Invalid private key!"));
+    vscode.window.showErrorMessage(l10n.t("Invalid private key!")).then(
+      () => {},
+      (err) => {
+        console.error(err);
+      }
+    );
     return;
   }
 
@@ -159,7 +164,7 @@ async function handleSyncMetadata() {
 }
 
 async function handleClearPrivateKey() {
-  await nostrSystem.clear();
+  await nostrSystem.clearPrivateKey();
 }
 
 async function handleDebug() {

@@ -14,17 +14,20 @@ import {
 } from "rx-nostr";
 import { filter } from "rxjs";
 
-import { currUnixtime } from "./utils";
+import { currUnixtime, currUnixtimeMilli } from "./utils";
 
-const KEY_NOSTR_PRIVATE_KEY = "nostr-priv-key";
-
-const CONFIG_KEYS = {
-  bootstrapRelays: "nostrClient.bootstrapRelays",
-  additionalWriteRelays: "nostrClient.additionalWriteRelays",
+const SECRET_STORE_KEYS = {
+  nostrPrivateKey: "nostr-priv-key",
 };
 
 const GLOBAL_STATE_KEYS = {
   metadataCache: "nostrMetadataCache",
+  updatePrivateKeyLock: "updatePrivateKeyLock",
+};
+
+const CONFIG_KEYS = {
+  bootstrapRelays: "nostrClient.bootstrapRelays",
+  additionalWriteRelays: "nostrClient.additionalWriteRelays",
 };
 
 const defaultBootstrapRelays = [
@@ -32,7 +35,7 @@ const defaultBootstrapRelays = [
   "wss://relayable.org",
 ];
 
-const metadataCacheMaxAge = 12 * 60 * 60; // 12hr
+const metadataCacheMaxAge = 12 * 60 * 60 * 1000; // 12hr
 
 type UserStatusProps = {
   status: string;
@@ -52,13 +55,13 @@ export class NostrSystem {
   #nostrFetcher: NostrFetcher;
   #sentEventIds: Set<string> = new Set();
 
-  // account metadata
-  #metaLastUpdated: number = 0;
+  // states sync-ed with relays
+  #metaLastUpdated: number = 0; // unixtime in millisecond
   #profile: Record<string, unknown> = {};
   #relaysFromEvents: Nip07.GetRelayResult = {};
-
-  // other states
   #userStatus = new UserStatus();
+
+  #isPrivateKeyUpdateInitiator = false;
 
   private constructor(ctx: vscode.ExtensionContext) {
     this.#ctx = ctx;
@@ -74,7 +77,7 @@ export class NostrSystem {
     await sys.restoreMetadataFromCache();
 
     const syncMetadata =
-      currUnixtime() - sys.#metaLastUpdated > metadataCacheMaxAge;
+      currUnixtimeMilli() - sys.#metaLastUpdated > metadataCacheMaxAge;
     await sys.syncStatesWithRelays({ syncMetadata });
 
     await sys.startStatesSyncSubscription();
@@ -84,11 +87,77 @@ export class NostrSystem {
 
   /* key pair */
   async updatePrivateKey(privkey: string) {
-    return this.#ctx.secrets.store(KEY_NOSTR_PRIVATE_KEY, privkey);
+    // acquire lock to update private key
+    // note: this is "loose" lock.  a guarantee that only one instance can update key is not perfect.
+    if (
+      this.#ctx.globalState.get(GLOBAL_STATE_KEYS.updatePrivateKeyLock) !==
+      undefined
+    ) {
+      console.warn(
+        "updatePrivateKey: private key is being updated by another instance. abort"
+      );
+      return;
+    }
+
+    try {
+      await this.#ctx.globalState.update(
+        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
+        true
+      );
+      this.#isPrivateKeyUpdateInitiator = true;
+
+      await this.#ctx.secrets.store(SECRET_STORE_KEYS.nostrPrivateKey, privkey);
+
+      // initiator of key update is in charge of updating global cache
+      await this.clearStates();
+      await this.clearGlobalCache();
+      await this.syncStatesWithRelays({ syncMetadata: true });
+      await this.saveMetadataToCache();
+    } finally {
+      // release lock
+      await this.#ctx.globalState.update(
+        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
+        undefined
+      );
+    }
+  }
+
+  async clearPrivateKey() {
+    // acquire lock to update private key
+    // note: this is "loose" lock.  a guarantee that only one instance can update key is not perfect.
+    if (
+      this.#ctx.globalState.get(GLOBAL_STATE_KEYS.updatePrivateKeyLock) !==
+      undefined
+    ) {
+      console.warn(
+        "clearPrivateKey: private key is being updated by another instance. abort"
+      );
+      return;
+    }
+
+    try {
+      await this.#ctx.globalState.update(
+        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
+        true
+      );
+      this.#isPrivateKeyUpdateInitiator = true;
+
+      await this.#ctx.secrets.delete(SECRET_STORE_KEYS.nostrPrivateKey);
+
+      // initiator of key update is in charge of clearing global cache
+      await this.clearStates();
+      await this.clearGlobalCache();
+    } finally {
+      // release lock
+      await this.#ctx.globalState.update(
+        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
+        undefined
+      );
+    }
   }
 
   async getPrivateKey(): Promise<string | undefined> {
-    return this.#ctx.secrets.get(KEY_NOSTR_PRIVATE_KEY);
+    return this.#ctx.secrets.get(SECRET_STORE_KEYS.nostrPrivateKey);
   }
 
   async isPrivatekeySet(): Promise<boolean> {
@@ -101,6 +170,20 @@ export class NostrSystem {
       return undefined;
     }
     return getPublicKey(privkey);
+  }
+
+  private async listenPrivateKeyChange() {
+    this.#ctx.secrets.onDidChange(async (ev) => {
+      if (ev.key === SECRET_STORE_KEYS.nostrPrivateKey) {
+        if (!this.#isPrivateKeyUpdateInitiator) {
+          // instances which are not the initiator should update only states of itself
+          await this.clearStates();
+          await this.syncStatesWithRelays({ syncMetadata: true }); // this is noop if key is cleared
+        } else {
+          this.#isPrivateKeyUpdateInitiator = false;
+        }
+      }
+    });
   }
 
   private async publishEvent(ev: EventParameters<number>) {
@@ -131,7 +214,7 @@ export class NostrSystem {
       kind: 1,
       content,
     };
-    this.publishEvent(ev);
+    await this.publishEvent(ev);
   }
 
   get profile() {
@@ -173,7 +256,7 @@ export class NostrSystem {
         ...(exp !== undefined ? [["expiration", String(exp)]] : []),
       ],
     };
-    this.publishEvent(ev);
+    await this.publishEvent(ev);
     this.#userStatus.update(status, linkUrl, exp);
   }
 
@@ -270,7 +353,7 @@ export class NostrSystem {
 
     await this.syncMetadataBody(readRelays, pubkey);
 
-    this.#metaLastUpdated = currUnixtime();
+    this.#metaLastUpdated = currUnixtimeMilli();
     await this.saveMetadataToCache();
     console.log("finished sync-ing nostr metadata with relays");
   }
@@ -339,6 +422,11 @@ export class NostrSystem {
     if (cache === undefined) {
       return;
     }
+    if (this.#metaLastUpdated >= cache.lastUpdated) {
+      // having data newer than cache
+      return;
+    }
+
     this.#metaLastUpdated = cache.lastUpdated;
     this.#profile = cache.profile;
     this.#relaysFromEvents = cache.relays;
@@ -363,19 +451,17 @@ export class NostrSystem {
     });
   }
 
-  async clear() {
-    // clear private key
-    await this.#ctx.secrets.delete(KEY_NOSTR_PRIVATE_KEY);
-
+  private async clearStates() {
     // disconnect from relays
-    this.#rxNostr.switchRelays({});
+    await this.#rxNostr.switchRelays({});
 
     // clear all states
     this.#profile = {};
     this.#relaysFromEvents = {};
     this.#userStatus.clear();
+  }
 
-    // clear metadata cache
+  private async clearGlobalCache() {
     await this.#ctx.globalState.update(
       GLOBAL_STATE_KEYS.metadataCache,
       undefined
