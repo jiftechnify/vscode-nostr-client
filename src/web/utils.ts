@@ -4,5 +4,4 @@ export const currUnixtime = () => getUnixTime(new Date());
 
 export const currUnixtimeMilli = Date.now;
 
-export const mapFalsyToUndefined = <T>(v: T): T | undefined =>
-  v ? v : undefined;
+export const mapFalsyToUndefined = <T>(v: T): T | undefined => (v ? v : undefined);

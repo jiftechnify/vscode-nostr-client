@@ -11,9 +11,7 @@ let nostrSystem: NostrSystem;
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
   for (const [command, handler] of commandMap) {
-    context.subscriptions.push(
-      vscode.commands.registerCommand(command, handler)
-    );
+    context.subscriptions.push(vscode.commands.registerCommand(command, handler));
   }
   nostrSystem = await NostrSystem.init(context);
 }
@@ -144,8 +142,7 @@ async function updateStatusFlow({ withLinkUrl }: { withLinkUrl: boolean }) {
   if (expInput === undefined) {
     return;
   }
-  const expiration =
-    expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
+  const expiration = expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
 
   await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
 }

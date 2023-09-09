@@ -4,14 +4,7 @@ import { rxNostrAdapter } from "@nostr-fetch/adapter-rx-nostr";
 import { NostrFetcher } from "nostr-fetch";
 import { getPublicKey, nip19 } from "nostr-tools";
 import { EventParameters, Nip07, Event as NostrEvent } from "nostr-typedef";
-import {
-  RxNostr,
-  createRxForwardReq,
-  createRxNostr,
-  getSignedEvent,
-  uniq,
-  verify,
-} from "rx-nostr";
+import { RxNostr, createRxForwardReq, createRxNostr, getSignedEvent, uniq, verify } from "rx-nostr";
 import { filter } from "rxjs";
 
 import { currUnixtime, currUnixtimeMilli } from "./utils";
@@ -30,10 +23,7 @@ const CONFIG_KEYS = {
   additionalWriteRelays: "nostrClient.additionalWriteRelays",
 };
 
-const defaultBootstrapRelays = [
-  "wss://relay.nostr.band",
-  "wss://relayable.org",
-];
+const defaultBootstrapRelays = ["wss://relay.nostr.band", "wss://relayable.org"];
 
 const metadataCacheMaxAge = 12 * 60 * 60 * 1000; // 12hr
 
@@ -66,9 +56,7 @@ export class NostrSystem {
   private constructor(ctx: vscode.ExtensionContext) {
     this.#ctx = ctx;
     this.#rxNostr = createRxNostr();
-    this.#nostrFetcher = NostrFetcher.withCustomPool(
-      rxNostrAdapter(this.#rxNostr)
-    );
+    this.#nostrFetcher = NostrFetcher.withCustomPool(rxNostrAdapter(this.#rxNostr));
   }
 
   static async init(ctx: vscode.ExtensionContext) {
@@ -76,8 +64,7 @@ export class NostrSystem {
 
     await sys.restoreMetadataFromCache();
 
-    const syncMetadata =
-      currUnixtimeMilli() - sys.#metaLastUpdated > metadataCacheMaxAge;
+    const syncMetadata = currUnixtimeMilli() - sys.#metaLastUpdated > metadataCacheMaxAge;
     await sys.syncStatesWithRelays({ syncMetadata });
 
     await sys.startStatesSyncSubscription();
@@ -90,22 +77,14 @@ export class NostrSystem {
   async updatePrivateKey(privkey: string) {
     // acquire lock to update private key
     // note: this is "loose" lock.  a guarantee that only one instance can update key is not perfect.
-    if (
-      this.#ctx.globalState.get(GLOBAL_STATE_KEYS.updatePrivateKeyLock) !==
-      undefined
-    ) {
-      console.warn(
-        "updatePrivateKey: private key is being updated by another instance. abort"
-      );
+    if (this.#ctx.globalState.get(GLOBAL_STATE_KEYS.updatePrivateKeyLock) !== undefined) {
+      console.warn("updatePrivateKey: private key is being updated by another instance. abort");
       return;
     }
 
     console.log("started updating private key");
     try {
-      await this.#ctx.globalState.update(
-        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
-        true
-      );
+      await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.updatePrivateKeyLock, true);
       this.#isPrivateKeyUpdateInitiator = true;
 
       await this.#ctx.secrets.store(SECRET_STORE_KEYS.nostrPrivateKey, privkey);
@@ -119,32 +98,21 @@ export class NostrSystem {
       console.log("finished updating private key");
     } finally {
       // release lock
-      await this.#ctx.globalState.update(
-        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
-        undefined
-      );
+      await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.updatePrivateKeyLock, undefined);
     }
   }
 
   async clearPrivateKey() {
     // acquire lock to update private key
     // note: this is "loose" lock.  a guarantee that only one instance can update key is not perfect.
-    if (
-      this.#ctx.globalState.get(GLOBAL_STATE_KEYS.updatePrivateKeyLock) !==
-      undefined
-    ) {
-      console.warn(
-        "clearPrivateKey: private key is being updated by another instance. abort"
-      );
+    if (this.#ctx.globalState.get(GLOBAL_STATE_KEYS.updatePrivateKeyLock) !== undefined) {
+      console.warn("clearPrivateKey: private key is being updated by another instance. abort");
       return;
     }
 
     console.log("started clearing private key");
     try {
-      await this.#ctx.globalState.update(
-        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
-        true
-      );
+      await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.updatePrivateKeyLock, true);
       this.#isPrivateKeyUpdateInitiator = true;
 
       await this.#ctx.secrets.delete(SECRET_STORE_KEYS.nostrPrivateKey);
@@ -156,10 +124,7 @@ export class NostrSystem {
       console.log("finished clearing private key");
     } finally {
       // release lock
-      await this.#ctx.globalState.update(
-        GLOBAL_STATE_KEYS.updatePrivateKeyLock,
-        undefined
-      );
+      await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.updatePrivateKeyLock, undefined);
     }
   }
 
@@ -184,9 +149,7 @@ export class NostrSystem {
       if (ev.key === SECRET_STORE_KEYS.nostrPrivateKey) {
         if (!this.#isPrivateKeyUpdateInitiator) {
           // instances which are not the initiator should update only states of itself
-          console.log(
-            "clearing and refetching states due to private key update"
-          );
+          console.log("clearing and refetching states due to private key update");
           await this.clearStates();
           await this.syncStatesWithRelays({ syncMetadata: true }); // this is noop if key is cleared
         } else {
@@ -235,9 +198,7 @@ export class NostrSystem {
   get relays(): Nip07.GetRelayResult {
     const res = { ...this.#relaysFromEvents };
 
-    for (const wr of getExtensionConfig<string[]>(
-      CONFIG_KEYS.additionalWriteRelays
-    ) ?? []) {
+    for (const wr of getExtensionConfig<string[]>(CONFIG_KEYS.additionalWriteRelays) ?? []) {
       res[wr] = {
         read: res[wr]?.read ?? false,
         write: true,
@@ -253,11 +214,7 @@ export class NostrSystem {
   get userStatus() {
     return this.#userStatus.value;
   }
-  async updateUserStatus({
-    status,
-    linkUrl,
-    expiration: exp,
-  }: UserStatusProps) {
+  async updateUserStatus({ status, linkUrl, expiration: exp }: UserStatusProps) {
     const ev = {
       kind: 30315,
       content: status,
@@ -293,10 +250,7 @@ export class NostrSystem {
         let relayListUpdated = false;
         switch (event.kind) {
           case 0:
-            this.#profile = JSON.parse(event.content) as Record<
-              string,
-              unknown
-            >;
+            this.#profile = JSON.parse(event.content) as Record<string, unknown>;
             break;
 
           case 3:
@@ -353,12 +307,8 @@ export class NostrSystem {
       .map(([rurl, _]) => rurl);
     if (readRelays.length === 0) {
       // use bootstrap relays if user has no read relays
-      readRelays =
-        getExtensionConfig<string[]>(CONFIG_KEYS.bootstrapRelays) ??
-        defaultBootstrapRelays;
-      relayConfig = Object.fromEntries(
-        readRelays.map((rurl) => [rurl, { read: true, write: false }])
-      );
+      readRelays = getExtensionConfig<string[]>(CONFIG_KEYS.bootstrapRelays) ?? defaultBootstrapRelays;
+      relayConfig = Object.fromEntries(readRelays.map((rurl) => [rurl, { read: true, write: false }]));
     }
     await this.#rxNostr.switchRelays(relayConfig);
 
@@ -380,10 +330,7 @@ export class NostrSystem {
       console.log(kind, event);
       switch (kind) {
         case 0:
-          this.#profile =
-            event !== undefined
-              ? (JSON.parse(event.content) as Record<string, unknown>)
-              : {};
+          this.#profile = event !== undefined ? (JSON.parse(event.content) as Record<string, unknown>) : {};
           break;
         case 3:
         case 10002:
@@ -426,9 +373,7 @@ export class NostrSystem {
 
   /* lifecycle */
   private async restoreMetadataFromCache() {
-    const cache = this.#ctx.globalState.get<SerializedMetadataCache>(
-      GLOBAL_STATE_KEYS.metadataCache
-    );
+    const cache = this.#ctx.globalState.get<SerializedMetadataCache>(GLOBAL_STATE_KEYS.metadataCache);
     console.log("got metadata cache:", cache);
     if (cache === undefined) {
       return;
@@ -477,10 +422,7 @@ export class NostrSystem {
   private async clearGlobalCache() {
     console.log("clearing global metadata cache...");
 
-    await this.#ctx.globalState.update(
-      GLOBAL_STATE_KEYS.metadataCache,
-      undefined
-    );
+    await this.#ctx.globalState.update(GLOBAL_STATE_KEYS.metadataCache, undefined);
   }
 
   dispose() {
@@ -555,9 +497,7 @@ const parseRelayList = (evs: NostrEvent[]): Nip07.GetRelayResult => {
   if (relayListEvs.length === 0) {
     return {};
   }
-  const latest = relayListEvs.sort(
-    (a, b) => b.created_at - a.created_at
-  )[0] as NostrEvent;
+  const latest = relayListEvs.sort((a, b) => b.created_at - a.created_at)[0] as NostrEvent;
 
   switch (latest.kind) {
     case 3:
@@ -607,8 +547,7 @@ const parseRelayListInKind10002 = (ev: NostrEvent): Nip07.GetRelayResult => {
   return res;
 };
 
-const getTagValue = (ev: NostrEvent, name: string): string =>
-  ev.tags.find((t) => t[0] === name)?.[1] ?? "";
+const getTagValue = (ev: NostrEvent, name: string): string => ev.tags.find((t) => t[0] === name)?.[1] ?? "";
 
 const getExpiration = (ev: NostrEvent): number | undefined => {
   const expStr = getTagValue(ev, "expiration");
