@@ -16,8 +16,9 @@
   "1 Hour": "1時間",
   "4 Hours": "4時間",
   "1 Day": "1日",
-  "Set your status": "ステータスを設定",
+  "Set your status (leave empty to clear)": "ステータスを設定(空欄のまま確定でクリア)",
   "Set link URL": "リンクURLを設定",
   "Clear status after...": "ステータスをクリアするまでの時間を設定",
+  "Are you sure you want to clear the user status?": "ユーザステータスをクリアしてもよろしいですか?",
   "Default user status is not configured.": "デフォルトのユーザステータスが設定されていません。"
 }
