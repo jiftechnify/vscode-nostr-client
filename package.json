@@ -62,11 +62,6 @@
         "category": "Nostr",
         "command": "nostr-client.syncMetadata",
         "title": "%nostr-client.syncMetadata.title%"
-      },
-      {
-        "category": "Nostr",
-        "command": "nostr-client.debug",
-        "title": "debug"
       }
     ],
     "configuration": {
