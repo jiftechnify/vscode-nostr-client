@@ -7,6 +7,7 @@ import { EventParameters, Nip07, Event as NostrEvent } from "nostr-typedef";
 import { RxNostr, createRxForwardReq, createRxNostr, getSignedEvent, uniq, verify } from "rx-nostr";
 import { filter } from "rxjs";
 
+import { CONFIG_KEYS } from "./const";
 import { currUnixtime, currUnixtimeMilli } from "./utils";
 
 const SECRET_STORE_KEYS = {
@@ -16,11 +17,6 @@ const SECRET_STORE_KEYS = {
 const GLOBAL_STATE_KEYS = {
   metadataCache: "nostrMetadataCache",
   updatePrivateKeyLock: "updatePrivateKeyLock",
-};
-
-const CONFIG_KEYS = {
-  bootstrapRelays: "nostrClient.bootstrapRelays",
-  additionalWriteRelays: "nostrClient.additionalWriteRelays",
 };
 
 const defaultBootstrapRelays = ["wss://relay.nostr.band", "wss://relayable.org"];

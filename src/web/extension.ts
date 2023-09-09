@@ -3,6 +3,7 @@ import { NostrSystem, toHexPrivateKey } from "./nostr";
 import * as vscode from "vscode";
 import { l10n } from "vscode";
 
+import { CONFIG_KEYS } from "./const";
 import { currUnixtime, mapFalsyToUndefined } from "./utils";
 
 let nostrSystem: NostrSystem;
@@ -25,6 +26,7 @@ const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.postText", handlePostText],
   ["nostr-client.updateStatus", handleUpdateStatus],
   ["nostr-client.updateStatusWithLink", handleUpdateStatusWithLink],
+  ["nostr-client.setDefaultStatus", handleSetDefaultStatus],
   ["nostr-client.setPrivKey", handleSetPrivateKey],
   ["nostr-client.clearPrivKey", handleClearPrivateKey],
   ["nostr-client.syncMetadata", handleSyncMetadata],
@@ -36,12 +38,21 @@ const yesNoChoices: (vscode.QuickPickItem & { ok: boolean })[] = [
   { label: l10n.t("No"), ok: false },
 ];
 
+const showYesNoPick = async (title: string) => {
+  const sel = await vscode.window.showQuickPick(yesNoChoices, {
+    title,
+  });
+
+  if (sel === undefined) {
+    return false;
+  }
+  return sel.ok;
+};
+
 async function handleSetPrivateKey() {
   if (await nostrSystem.isPrivatekeySet()) {
-    const sel = await vscode.window.showQuickPick(yesNoChoices, {
-      title: l10n.t("Private key is already set. Is it OK to overwrite?"),
-    });
-    if (sel === undefined || !sel.ok) {
+    const yes = await showYesNoPick(l10n.t("Private key is already set. Is it OK to overwrite?"));
+    if (!yes) {
       return;
     }
   }
@@ -100,11 +111,11 @@ const secsUntilExpirationChoices: (vscode.QuickPickItem & {
 
 const getStatusInput = async () => {
   const input = await vscode.window.showInputBox({
-    title: l10n.t("Set your status"),
+    title: l10n.t("Set your status (leave empty to clear)"),
     value: nostrSystem.userStatus.status,
     ignoreFocusOut: true,
   });
-  return mapFalsyToUndefined(input);
+  return input;
 };
 
 const getLinkUrlInput = async () => {
@@ -117,7 +128,7 @@ const getLinkUrlInput = async () => {
 };
 
 const getStatusExpirationInput = async () => {
-  return await vscode.window.showQuickPick(secsUntilExpirationChoices, {
+  return vscode.window.showQuickPick(secsUntilExpirationChoices, {
     title: l10n.t("Clear status after..."),
   });
 };
@@ -130,21 +141,37 @@ async function updateStatusFlow({ withLinkUrl }: { withLinkUrl: boolean }) {
 
   const status = await getStatusInput();
   if (status === undefined) {
+    // ESC is pressed
     return;
   }
 
-  const linkUrl = withLinkUrl ? await getLinkUrlInput() : "";
-  if (linkUrl === undefined) {
-    return;
-  }
+  if (status !== "") {
+    const linkUrl = withLinkUrl ? await getLinkUrlInput() : "";
+    if (linkUrl === undefined) {
+      return;
+    }
 
-  const expInput = await getStatusExpirationInput();
-  if (expInput === undefined) {
-    return;
-  }
-  const expiration = expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
+    const expInput = await getStatusExpirationInput();
+    if (expInput === undefined) {
+      return;
+    }
+    const expiration = expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
 
-  await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
+    await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
+  } else {
+    if (nostrSystem.userStatus.status === "") {
+      // status isn't set from the start
+      return;
+    }
+
+    // clear status
+    const yes = await showYesNoPick(l10n.t("Are you sure you want to clear the user status?"));
+    if (!yes) {
+      return;
+    }
+
+    await nostrSystem.updateUserStatus({ status: "", linkUrl: "", expiration: undefined });
+  }
 }
 
 async function handleUpdateStatus() {
@@ -153,6 +180,24 @@ async function handleUpdateStatus() {
 
 async function handleUpdateStatusWithLink() {
   await updateStatusFlow({ withLinkUrl: true });
+}
+
+async function handleSetDefaultStatus() {
+  const vscConfig = vscode.workspace.getConfiguration();
+  const status = vscConfig.get<string>(CONFIG_KEYS.defaultUserStatus);
+  if (!status) {
+    await vscode.window.showWarningMessage(l10n.t("Default user status is not configured."));
+    return;
+  }
+  const linkUrl = vscConfig.get<string>(CONFIG_KEYS.linkUrlForDefaultUserStatus) ?? "";
+
+  const expInput = await getStatusExpirationInput();
+  if (expInput === undefined) {
+    return;
+  }
+  const expiration = expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
+
+  await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
 }
 
 async function handleSyncMetadata() {
