@@ -81,6 +81,7 @@ export class NostrSystem {
     await sys.syncStatesWithRelays({ syncMetadata });
 
     await sys.startStatesSyncSubscription();
+    sys.listenPrivateKeyChange();
 
     return sys;
   }
@@ -99,6 +100,7 @@ export class NostrSystem {
       return;
     }
 
+    console.log("started updating private key");
     try {
       await this.#ctx.globalState.update(
         GLOBAL_STATE_KEYS.updatePrivateKeyLock,
@@ -113,6 +115,8 @@ export class NostrSystem {
       await this.clearGlobalCache();
       await this.syncStatesWithRelays({ syncMetadata: true });
       await this.saveMetadataToCache();
+
+      console.log("finished updating private key");
     } finally {
       // release lock
       await this.#ctx.globalState.update(
@@ -135,6 +139,7 @@ export class NostrSystem {
       return;
     }
 
+    console.log("started clearing private key");
     try {
       await this.#ctx.globalState.update(
         GLOBAL_STATE_KEYS.updatePrivateKeyLock,
@@ -147,6 +152,8 @@ export class NostrSystem {
       // initiator of key update is in charge of clearing global cache
       await this.clearStates();
       await this.clearGlobalCache();
+
+      console.log("finished clearing private key");
     } finally {
       // release lock
       await this.#ctx.globalState.update(
@@ -172,14 +179,18 @@ export class NostrSystem {
     return getPublicKey(privkey);
   }
 
-  private async listenPrivateKeyChange() {
+  private listenPrivateKeyChange() {
     this.#ctx.secrets.onDidChange(async (ev) => {
       if (ev.key === SECRET_STORE_KEYS.nostrPrivateKey) {
         if (!this.#isPrivateKeyUpdateInitiator) {
           // instances which are not the initiator should update only states of itself
+          console.log(
+            "clearing and refetching states due to private key update"
+          );
           await this.clearStates();
           await this.syncStatesWithRelays({ syncMetadata: true }); // this is noop if key is cleared
         } else {
+          console.log("resetting #isPrivateKeyUpdateInitiator");
           this.#isPrivateKeyUpdateInitiator = false;
         }
       }
@@ -418,7 +429,7 @@ export class NostrSystem {
     const cache = this.#ctx.globalState.get<SerializedMetadataCache>(
       GLOBAL_STATE_KEYS.metadataCache
     );
-    console.log("metadata cache:", cache);
+    console.log("got metadata cache:", cache);
     if (cache === undefined) {
       return;
     }
@@ -452,6 +463,8 @@ export class NostrSystem {
   }
 
   private async clearStates() {
+    console.log("clearing internal states...");
+
     // disconnect from relays
     await this.#rxNostr.switchRelays({});
 
@@ -462,6 +475,8 @@ export class NostrSystem {
   }
 
   private async clearGlobalCache() {
+    console.log("clearing global metadata cache...");
+
     await this.#ctx.globalState.update(
       GLOBAL_STATE_KEYS.metadataCache,
       undefined

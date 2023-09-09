@@ -69,7 +69,6 @@ async function handleSetPrivateKey() {
   }
 
   await nostrSystem.updatePrivateKey(privkey);
-  await nostrSystem.syncStatesWithRelays({ syncMetadata: true });
 }
 
 async function handlePostText() {
@@ -168,11 +167,11 @@ async function handleClearPrivateKey() {
 }
 
 async function handleDebug() {
-  console.log(await nostrSystem.getPublicKey());
-  console.log(nostrSystem.profile);
-  console.log(nostrSystem.relays);
-  console.log(nostrSystem.relayStates);
-  console.log(nostrSystem.userStatus);
+  console.log("pubkey:", await nostrSystem.getPublicKey());
+  console.log("profile:", nostrSystem.profile);
+  console.log("releys:", nostrSystem.relays);
+  console.log("rx-nostr relay states:", nostrSystem.relayStates);
+  console.log("user status:", nostrSystem.userStatus);
 }
 
 const buttonsInNoPrivKeyMsg: (vscode.MessageItem & { ok: boolean })[] = [
