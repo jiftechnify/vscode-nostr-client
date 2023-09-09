@@ -254,6 +254,13 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@nostr-fetch/adapter-rx-nostr@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@nostr-fetch/adapter-rx-nostr/-/adapter-rx-nostr-0.13.0.tgz#a2be6e5940540d7f03a4f48b555594ca32f6120e"
+  integrity sha512-HojQeLdA7t+ONzPyVaF7lM6bAY8y42YFVyiXM6dp7VSSSlHPOIbPFanRzIA3fIuP/Gp3wtu0LcJMUauzoFCA7g==
+  dependencies:
+    "@nostr-fetch/kernel" "^0.13.0"
+
 "@nostr-fetch/kernel@^0.13.0":
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/@nostr-fetch/kernel/-/kernel-0.13.0.tgz#ff5b4c3e138056eadcaaf10f957073528508260e"
@@ -2095,7 +2102,7 @@ rx-nostr@^1.7.5:
     normalize-url "^8.0.0"
     rxjs "^7.8.0"
 
-rxjs@^7.8.0:
+rxjs@^7.8.0, rxjs@^7.8.1:
   version "7.8.1"
   resolved "https://registry.yarnpkg.com/rxjs/-/rxjs-7.8.1.tgz#6f6f3d99ea8044291efd92e7c7fcf562c4057543"
   integrity sha512-AA3TVj+0A2iuIoQkWEK/tqFjBq2j+6PO6Y0zJcvzLAFhEFIO3HL0vls9hWLncZbAAbK0mar7oZ4V079I/qPMxg==

@@ -1,41 +1,30 @@
-import { NostrMetadataRepository, toHexPrivateKey } from "./nostr";
+import { NostrSystem, toHexPrivateKey } from "./nostr";
 
 import * as vscode from "vscode";
 import { l10n } from "vscode";
 
-import { NostrFetcher } from "nostr-fetch";
-import { createRxNostr } from "rx-nostr";
-import { currUnixtime } from "./utils";
+import { currUnixtime, mapFalsyToUndefined } from "./utils";
 
-let metadataRepo: NostrMetadataRepository;
-const rxNostr = createRxNostr();
+let nostrSystem: NostrSystem;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export async function activate(context: vscode.ExtensionContext) {
   for (const [command, handler] of commandMap) {
-    context.subscriptions.push(
-      vscode.commands.registerCommand(command, handler)
-    );
+    context.subscriptions.push(vscode.commands.registerCommand(command, handler));
   }
-
-  metadataRepo = await NostrMetadataRepository.init(
-    context,
-    NostrFetcher.init()
-  );
-  await rxNostr.switchRelays(metadataRepo.relays);
+  nostrSystem = await NostrSystem.init(context);
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {
-  metadataRepo.dispose();
-  rxNostr.dispose();
+export async function deactivate() {
+  nostrSystem.dispose();
 }
 
 const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.postText", handlePostText],
   ["nostr-client.updateStatus", handleUpdateStatus],
-  ["nostr-client.updateStatusWithLink", handleUpdateWithLink],
+  ["nostr-client.updateStatusWithLink", handleUpdateStatusWithLink],
   ["nostr-client.setPrivKey", handleSetPrivateKey],
   ["nostr-client.clearPrivKey", handleClearPrivateKey],
   ["nostr-client.syncMetadata", handleSyncMetadata],
@@ -48,7 +37,7 @@ const yesNoChoices: (vscode.QuickPickItem & { ok: boolean })[] = [
 ];
 
 async function handleSetPrivateKey() {
-  if (await metadataRepo.isPrivatekeySet()) {
+  if (await nostrSystem.isPrivatekeySet()) {
     const sel = await vscode.window.showQuickPick(yesNoChoices, {
       title: l10n.t("Private key is already set. Is it OK to overwrite?"),
     });
@@ -68,13 +57,16 @@ async function handleSetPrivateKey() {
   }
   const privkey = toHexPrivateKey(input);
   if (privkey === undefined) {
-    vscode.window.showErrorMessage(l10n.t("Invalid private key!"));
+    vscode.window.showErrorMessage(l10n.t("Invalid private key!")).then(
+      () => {},
+      (err) => {
+        console.error(err);
+      }
+    );
     return;
   }
 
-  await metadataRepo.updatePrivateKey(privkey);
-  await metadataRepo.resync();
-  await rxNostr.switchRelays(metadataRepo.relays);
+  await nostrSystem.updatePrivateKey(privkey);
 }
 
 async function handlePostText() {
@@ -92,14 +84,7 @@ async function handlePostText() {
     return;
   }
 
-  const ev = {
-    kind: 1,
-    content,
-  };
-  console.log("sending event: %O", ev);
-  rxNostr.send(ev, { seckey: privkey }).subscribe((packet) => {
-    console.log(packet);
-  });
+  await nostrSystem.postText(content);
 }
 
 const secsUntilExpirationChoices: (vscode.QuickPickItem & {
@@ -114,11 +99,21 @@ const secsUntilExpirationChoices: (vscode.QuickPickItem & {
 ];
 
 const getStatusInput = async () => {
-  return vscode.window.showInputBox({
+  const input = await vscode.window.showInputBox({
     title: l10n.t("Set your status"),
-    value: metadataRepo.userStatus.status,
+    value: nostrSystem.userStatus.status,
     ignoreFocusOut: true,
   });
+  return mapFalsyToUndefined(input);
+};
+
+const getLinkUrlInput = async () => {
+  const input = await vscode.window.showInputBox({
+    title: l10n.t("Set link URL"),
+    value: nostrSystem.userStatus.linkUrl,
+    ignoreFocusOut: true,
+  });
+  return mapFalsyToUndefined(input);
 };
 
 const getStatusExpirationInput = async () => {
@@ -127,34 +122,19 @@ const getStatusExpirationInput = async () => {
   });
 };
 
-const composeUserStatus = ({
-  status,
-  linkUrl = "",
-  expiration: exp,
-}: {
-  status: string;
-  linkUrl?: string;
-  expiration?: number;
-}) => {
-  return {
-    kind: 30315,
-    content: status,
-    tags: [
-      ["d", "general"],
-      ...(linkUrl !== "" ? [["r", linkUrl]] : []),
-      ...(exp !== undefined ? [["expiration", String(exp)]] : []),
-    ],
-  };
-};
-
-async function handleUpdateStatus() {
+async function updateStatusFlow({ withLinkUrl }: { withLinkUrl: boolean }) {
   const privkey = await checkPrivateKeyFlow();
   if (!privkey) {
     return;
   }
 
   const status = await getStatusInput();
-  if (!status) {
+  if (status === undefined) {
+    return;
+  }
+
+  const linkUrl = withLinkUrl ? await getLinkUrlInput() : "";
+  if (linkUrl === undefined) {
     return;
   }
 
@@ -162,69 +142,33 @@ async function handleUpdateStatus() {
   if (expInput === undefined) {
     return;
   }
-  const expiration =
-    expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
+  const expiration = expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
 
-  const statusEv = composeUserStatus({ status, expiration });
-  console.log("sending event: %O", statusEv);
-  rxNostr.send(statusEv, { seckey: privkey }).subscribe((packet) => {
-    console.log(packet);
-  });
-
-  metadataRepo.updateUserStatus({ status, expiration });
+  await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
 }
 
-async function handleUpdateWithLink() {
-  const privkey = await checkPrivateKeyFlow();
-  if (!privkey) {
-    return;
-  }
+async function handleUpdateStatus() {
+  await updateStatusFlow({ withLinkUrl: false });
+}
 
-  const status = await getStatusInput();
-  if (!status) {
-    return;
-  }
-
-  const linkUrl = await vscode.window.showInputBox({
-    title: l10n.t("Set link URL"),
-    value: metadataRepo.userStatus.linkUrl,
-    ignoreFocusOut: true,
-  });
-  if (!linkUrl) {
-    return;
-  }
-
-  const expInput = await getStatusExpirationInput();
-  if (expInput === undefined) {
-    return;
-  }
-  const expiration =
-    expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
-
-  const statusEv = composeUserStatus({ status, linkUrl, expiration });
-  console.log("sending event: %O", statusEv);
-  rxNostr.send(statusEv, { seckey: privkey }).subscribe((packet) => {
-    console.log(packet);
-  });
-
-  metadataRepo.updateUserStatus({ status, linkUrl, expiration });
+async function handleUpdateStatusWithLink() {
+  await updateStatusFlow({ withLinkUrl: true });
 }
 
 async function handleSyncMetadata() {
-  await metadataRepo.resync();
-  await rxNostr.switchRelays(metadataRepo.relays);
+  await nostrSystem.syncStatesWithRelays({ syncMetadata: true });
 }
 
 async function handleClearPrivateKey() {
-  await metadataRepo.clear();
-  await rxNostr.switchRelays({});
+  await nostrSystem.clearPrivateKey();
 }
 
 async function handleDebug() {
-  console.log(await metadataRepo.getPublicKey());
-  console.log(metadataRepo.profile);
-  console.log(metadataRepo.relays);
-  console.log(rxNostr.getAllRelayState());
+  console.log("pubkey:", await nostrSystem.getPublicKey());
+  console.log("profile:", nostrSystem.profile);
+  console.log("releys:", nostrSystem.relays);
+  console.log("rx-nostr relay states:", nostrSystem.relayStates);
+  console.log("user status:", nostrSystem.userStatus);
 }
 
 const buttonsInNoPrivKeyMsg: (vscode.MessageItem & { ok: boolean })[] = [
@@ -235,7 +179,7 @@ const buttonsInNoPrivKeyMsg: (vscode.MessageItem & { ok: boolean })[] = [
 // checks private key is set. if not, show error message with "Set Private Key" button.
 // when the button is clicked, execute setPrivKey command.
 const checkPrivateKeyFlow = async (): Promise<string | undefined> => {
-  const privkey = await metadataRepo.getPrivateKey();
+  const privkey = await nostrSystem.getPrivateKey();
   if (privkey === undefined) {
     const sel = await vscode.window.showErrorMessage(
       l10n.t("Set your Nostr private key first!"),
