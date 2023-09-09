@@ -3,7 +3,7 @@ import { NostrSystem, toHexPrivateKey } from "./nostr";
 import * as vscode from "vscode";
 import { l10n } from "vscode";
 
-import { currUnixtime } from "./utils";
+import { currUnixtime, mapFalsyToUndefined } from "./utils";
 
 let nostrSystem: NostrSystem;
 
@@ -97,11 +97,21 @@ const secsUntilExpirationChoices: (vscode.QuickPickItem & {
 ];
 
 const getStatusInput = async () => {
-  return vscode.window.showInputBox({
+  const input = await vscode.window.showInputBox({
     title: l10n.t("Set your status"),
     value: nostrSystem.userStatus.status,
     ignoreFocusOut: true,
   });
+  return mapFalsyToUndefined(input);
+};
+
+const getLinkUrlInput = async () => {
+  const input = await vscode.window.showInputBox({
+    title: l10n.t("Set link URL"),
+    value: nostrSystem.userStatus.linkUrl,
+    ignoreFocusOut: true,
+  });
+  return mapFalsyToUndefined(input);
 };
 
 const getStatusExpirationInput = async () => {
@@ -110,44 +120,19 @@ const getStatusExpirationInput = async () => {
   });
 };
 
-async function handleUpdateStatus() {
+async function updateStatusFlow({ withLinkUrl }: { withLinkUrl: boolean }) {
   const privkey = await checkPrivateKeyFlow();
   if (!privkey) {
     return;
   }
 
   const status = await getStatusInput();
-  if (!status) {
+  if (status === undefined) {
     return;
   }
 
-  const expInput = await getStatusExpirationInput();
-  if (expInput === undefined) {
-    return;
-  }
-  const expiration =
-    expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
-
-  await nostrSystem.updateUserStatus({ status, linkUrl: "", expiration });
-}
-
-async function handleUpdateStatusWithLink() {
-  const privkey = await checkPrivateKeyFlow();
-  if (!privkey) {
-    return;
-  }
-
-  const status = await getStatusInput();
-  if (!status) {
-    return;
-  }
-
-  const linkUrl = await vscode.window.showInputBox({
-    title: l10n.t("Set link URL"),
-    value: nostrSystem.userStatus.linkUrl,
-    ignoreFocusOut: true,
-  });
-  if (!linkUrl) {
+  const linkUrl = withLinkUrl ? await getLinkUrlInput() : "";
+  if (linkUrl === undefined) {
     return;
   }
 
@@ -159,6 +144,14 @@ async function handleUpdateStatusWithLink() {
     expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
 
   await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
+}
+
+async function handleUpdateStatus() {
+  await updateStatusFlow({ withLinkUrl: false });
+}
+
+async function handleUpdateStatusWithLink() {
+  await updateStatusFlow({ withLinkUrl: true });
 }
 
 async function handleSyncMetadata() {
