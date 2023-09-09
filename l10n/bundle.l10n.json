@@ -1,0 +1,23 @@
+{
+  "Yes": "Yes",
+  "No": "No",
+  "Private key is already set. Is it OK to overwrite?": "Private key is already set. Is it OK to overwrite?",
+  "Input your Nostr private key": "Input your Nostr private key",
+  "hex or nsec": "hex or nsec",
+  "Invalid private key!": "Invalid private key!",
+  "Text to post": "Text to post",
+  "What's on your mind?": "What's on your mind?",
+  "Don't clear": "Don't clear",
+  "10 Minutes": "10 Minutes",
+  "30 Minutes": "30 Minutes",
+  "1 Hour": "1 Hour",
+  "4 Hours": "4 Hours",
+  "1 Day": "1 Day",
+  "Set your status": "Set your status",
+  "Set link URL": "Set link URL",
+  "Clear status after...": "Clear status after...",
+  "Default user status is not configured.": "Default user status is not configured.",
+  "Set Private Key": "Set Private Key",
+  "Dismiss": "Dismiss",
+  "Set your Nostr private key first!": "Set your Nostr private key first!"
+}

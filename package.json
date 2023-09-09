@@ -45,6 +45,11 @@
       },
       {
         "category": "Nostr",
+        "command": "nostr-client.setDefaultStatus",
+        "title": "%nostr-client.setDefaultStatus.title%"
+      },
+      {
+        "category": "Nostr",
         "command": "nostr-client.setPrivKey",
         "title": "%nostr-client.setPrivKey.title%"
       },
@@ -87,6 +92,14 @@
           },
           "default": [],
           "markdownDescription": "%nostrClient.additionalWriteRelays.markdownDescription%"
+        },
+        "nostrClient.defaultUserStatus": {
+          "type": "string",
+          "markdownDescription": "%nostrClient.defaultUserStatus.markdownDescription%"
+        },
+        "nostrClient.linkUrlForDefaultUserStatus": {
+          "type": "string",
+          "markdownDescription": "%nostrClient.linkUrlForDefaultUserStatus.markdownDescription%"
         }
       }
     }

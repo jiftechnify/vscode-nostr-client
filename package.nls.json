@@ -2,9 +2,12 @@
   "nostr-client.postText.title": "Post Text",
   "nostr-client.updateStatus.title": "Update Status",
   "nostr-client.updateStatusWithLink.title": "Update Status with Link",
+  "nostr-client.setDefaultStatus.title": "Set Default User Status",
   "nostr-client.setPrivKey.title": "Set Private Key",
   "nostr-client.clearPrivKey.title": "Clear Private Key",
   "nostr-client.syncMetadata.title": "Synchronize Account Metadata",
   "nostrClient.bootstrapRelays.markdownDescription": "Relay URLs to get metadata (your profile, relays to use etc...) of your account.  Set your daily-use relays here.\n\n Hint: After changing it, you should run `Nostr: Synchronize Account Metadata` in order to keep metadata up-to-date.",
-  "nostrClient.additionalWriteRelays.markdownDescription": "Relay URLs to additionally send your posts.  Write relays configured by events (kind 3 & 10002) are also used."
+  "nostrClient.additionalWriteRelays.markdownDescription": "Relay URLs to additionally send your posts.  Write relays configured by events (kind 3 & 10002) are also used.",
+  "nostrClient.defaultUserStatus.markdownDescription": "User status text that will be set by the command `Nostr: Set Default User Status`",
+  "nostrClient.linkUrlForDefaultUserStatus.markdownDescription": "Link URL for user status that will be set by the command `Nostr: Set Default User Status`"
 }

@@ -18,5 +18,6 @@
   "1 Day": "1日",
   "Set your status": "ステータスを設定",
   "Set link URL": "リンクURLを設定",
-  "Clear status after...": "ステータスをクリアするまでの時間を設定"
+  "Clear status after...": "ステータスをクリアするまでの時間を設定",
+  "Default user status is not configured.": "デフォルトのユーザステータスが設定されていません。"
 }

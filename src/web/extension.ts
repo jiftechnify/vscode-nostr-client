@@ -3,6 +3,7 @@ import { NostrSystem, toHexPrivateKey } from "./nostr";
 import * as vscode from "vscode";
 import { l10n } from "vscode";
 
+import { CONFIG_KEYS } from "./const";
 import { currUnixtime, mapFalsyToUndefined } from "./utils";
 
 let nostrSystem: NostrSystem;
@@ -25,6 +26,7 @@ const commandMap: [string, (...args: unknown[]) => unknown][] = [
   ["nostr-client.postText", handlePostText],
   ["nostr-client.updateStatus", handleUpdateStatus],
   ["nostr-client.updateStatusWithLink", handleUpdateStatusWithLink],
+  ["nostr-client.setDefaultStatus", handleSetDefaultStatus],
   ["nostr-client.setPrivKey", handleSetPrivateKey],
   ["nostr-client.clearPrivKey", handleClearPrivateKey],
   ["nostr-client.syncMetadata", handleSyncMetadata],
@@ -117,7 +119,7 @@ const getLinkUrlInput = async () => {
 };
 
 const getStatusExpirationInput = async () => {
-  return await vscode.window.showQuickPick(secsUntilExpirationChoices, {
+  return vscode.window.showQuickPick(secsUntilExpirationChoices, {
     title: l10n.t("Clear status after..."),
   });
 };
@@ -153,6 +155,24 @@ async function handleUpdateStatus() {
 
 async function handleUpdateStatusWithLink() {
   await updateStatusFlow({ withLinkUrl: true });
+}
+
+async function handleSetDefaultStatus() {
+  const vscConfig = vscode.workspace.getConfiguration();
+  const status = vscConfig.get<string>(CONFIG_KEYS.defaultUserStatus);
+  if (!status) {
+    await vscode.window.showWarningMessage(l10n.t("Default user status is not configured."));
+    return;
+  }
+  const linkUrl = vscConfig.get<string>(CONFIG_KEYS.linkUrlForDefaultUserStatus) ?? "";
+
+  const expInput = await getStatusExpirationInput();
+  if (expInput === undefined) {
+    return;
+  }
+  const expiration = expInput.dur !== undefined ? currUnixtime() + expInput.dur : undefined;
+
+  await nostrSystem.updateUserStatus({ status, linkUrl, expiration });
 }
 
 async function handleSyncMetadata() {
