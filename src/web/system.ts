@@ -236,7 +236,7 @@ export class NostrSystem {
     this.#userStatus.update(status, linkUrl, exp);
   }
 
-  /* subscription for states syncronization */
+  /* subscription for states synchronization */
   private async startStatesSyncSubscription() {
     const pubkey = await this.getPublicKey();
     if (pubkey === undefined) {
@@ -292,7 +292,7 @@ export class NostrSystem {
     ]);
   }
 
-  /* oneshot data syncronization */
+  /* oneshot data synchronization */
   async syncStatesWithRelays({ syncMetadata }: { syncMetadata: boolean }) {
     const pubkey = await this.getPublicKey();
     if (pubkey === undefined) {
