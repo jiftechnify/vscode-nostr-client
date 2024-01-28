@@ -12,6 +12,7 @@ import {
   UserStatus,
   getExpiration,
   getTagValue,
+  parseHashtags,
   parseRelayList,
   parseRelayListInKind10002,
   parseRelayListInKind3,
@@ -187,9 +188,13 @@ export class NostrSystem {
       return;
     }
 
+    const hashtags = parseHashtags(content);
+    const tTags = hashtags.map((tag) => ["t", tag]);
+
     const ev = {
       kind: 1,
       content,
+      tags: [...tTags],
     };
     await this.publishEvent(ev);
   }
