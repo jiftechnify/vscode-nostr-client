@@ -160,6 +160,7 @@ export const parseHashtags = (content: string): string[] => {
     }
 
     const afterHash = rest.slice(hashIdx + 1);
+    // TODO: consider other puctuations as tag terminators
     const spaceIdx = afterHash.search(/\s/);
     if (spaceIdx === -1) {
       tags.push(afterHash);
