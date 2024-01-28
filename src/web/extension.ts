@@ -1,4 +1,5 @@
-import { NostrSystem, toHexPrivateKey } from "./nostr";
+import { toHexPrivateKey } from "./nostr";
+import { NostrSystem } from "./system";
 
 import * as vscode from "vscode";
 import { l10n } from "vscode";
