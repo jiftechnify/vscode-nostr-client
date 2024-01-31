@@ -7,7 +7,7 @@ export class UserStatus {
   #status: string = "";
   #linkUrl: string = "";
   #expiration: number | undefined;
-  #expTimer: number | undefined;
+  #expTimer: NodeJS.Timeout | undefined;
 
   get value() {
     return {

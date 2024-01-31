@@ -109,10 +109,11 @@
     "vscode:prepublish": "yarn run package-web",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. .",
     "lint": "tsc && eslint src --ext ts",
-    "vitest": "vitest run"
+    "unit-test": "vitest run"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.1",
+    "@types/node": "^20.11.13",
     "@types/vscode": "^1.81.0",
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
