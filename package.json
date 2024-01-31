@@ -118,7 +118,7 @@
     "@typescript-eslint/eslint-plugin": "^5.59.8",
     "@typescript-eslint/parser": "^5.59.8",
     "@vscode/l10n-dev": "^0.0.29",
-    "@vscode/test-web": "^0.0.44",
+    "@vscode/test-web": "^0.0.51",
     "assert": "^2.0.0",
     "esbuild": "^0.19.2",
     "eslint": "^8.41.0",
