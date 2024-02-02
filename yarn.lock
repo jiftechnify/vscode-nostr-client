@@ -394,10 +394,10 @@
   dependencies:
     "@nostr-fetch/kernel" "^0.13.0"
 
-"@nostr-fetch/kernel@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@nostr-fetch/kernel/-/kernel-0.13.0.tgz#ff5b4c3e138056eadcaaf10f957073528508260e"
-  integrity sha512-KoF6pCezZvGP9ZQo23Ib4UDwJRd08xqVeVTQ44Z/b+gxBBrZCR0lnwOPS6KYBvdOfduynQEryNt5if5ZLxpRlg==
+"@nostr-fetch/kernel@^0.13.0", "@nostr-fetch/kernel@^0.13.1":
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/@nostr-fetch/kernel/-/kernel-0.13.1.tgz#98300483e4588dbced6c9805b3a0a2f7f3a77943"
+  integrity sha512-ehaT6KWPS1fpoxljEfGJuQcmwDZTjJBymw92H8LzzFA5O7eLyfUE7Xbb0nrx5bg5IAnZYdeELZOpeO2gMY/w1g==
   dependencies:
     "@noble/curves" "^1.1.0"
     "@noble/hashes" "^1.2.0"
@@ -2209,12 +2209,12 @@ normalize-url@^8.0.0:
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-8.0.0.tgz#593dbd284f743e8dcf6a5ddf8fadff149c82701a"
   integrity sha512-uVFpKhj5MheNBJRTiMZ9pE/7hD1QTeEvugSJW/OmLzAp78PB5O6adfMNTvmfKhXBkvCzC+rqifWcVYpGFwTjnw==
 
-nostr-fetch@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/nostr-fetch/-/nostr-fetch-0.13.0.tgz#9d3a377822c76cc6139b0f0a9dc5b6c946741e31"
-  integrity sha512-0lIBkDjF5W0OBtkoMPax6ArKlzMGQDfc6cSyZ+XFvAoY2TJEiUXkI7Piwf0TQBEvJtahHaZnaTaFD13T69mgmQ==
+nostr-fetch@^0.13.1:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/nostr-fetch/-/nostr-fetch-0.13.1.tgz#47b381f0ec07ed51ce546852d90b39440040b299"
+  integrity sha512-tPIaGcCgTW/2neESngMnYMzJJDAqR0s9ty2+BlbJhqYP+A8stSD9MCDQUPP9huLga/1WUPBLzg1z/3ZkLytcYw==
   dependencies:
-    "@nostr-fetch/kernel" "^0.13.0"
+    "@nostr-fetch/kernel" "^0.13.1"
 
 nostr-tools@^1.14.2:
   version "1.14.2"

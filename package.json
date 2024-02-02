@@ -131,7 +131,7 @@
   "dependencies": {
     "@nostr-fetch/adapter-rx-nostr": "^0.13.0",
     "date-fns": "^2.30.0",
-    "nostr-fetch": "^0.13.0",
+    "nostr-fetch": "^0.13.1",
     "nostr-tools": "^1.14.2",
     "rx-nostr": "^1.7.5",
     "rxjs": "^7.8.1"
