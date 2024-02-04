@@ -387,14 +387,14 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@nostr-fetch/adapter-rx-nostr@^0.13.0":
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/@nostr-fetch/adapter-rx-nostr/-/adapter-rx-nostr-0.13.0.tgz#a2be6e5940540d7f03a4f48b555594ca32f6120e"
-  integrity sha512-HojQeLdA7t+ONzPyVaF7lM6bAY8y42YFVyiXM6dp7VSSSlHPOIbPFanRzIA3fIuP/Gp3wtu0LcJMUauzoFCA7g==
+"@nostr-fetch/adapter-rx-nostr@^0.13.1":
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/@nostr-fetch/adapter-rx-nostr/-/adapter-rx-nostr-0.13.1.tgz#df960a02c0b18051c69a50c4365d9b33b7b12913"
+  integrity sha512-hFKgFtfsMIcbmG0ZoXM1CfVtW/oi6G3IdGh+9Tc7QGVyEAO+sndh9PTeNNLyy/V1kKEAnyo97bQoWpcYyXak6A==
   dependencies:
-    "@nostr-fetch/kernel" "^0.13.0"
+    "@nostr-fetch/kernel" "^0.13.1"
 
-"@nostr-fetch/kernel@^0.13.0", "@nostr-fetch/kernel@^0.13.1":
+"@nostr-fetch/kernel@^0.13.1":
   version "0.13.1"
   resolved "https://registry.yarnpkg.com/@nostr-fetch/kernel/-/kernel-0.13.1.tgz#98300483e4588dbced6c9805b3a0a2f7f3a77943"
   integrity sha512-ehaT6KWPS1fpoxljEfGJuQcmwDZTjJBymw92H8LzzFA5O7eLyfUE7Xbb0nrx5bg5IAnZYdeELZOpeO2gMY/w1g==
