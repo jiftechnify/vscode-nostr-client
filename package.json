@@ -129,7 +129,7 @@
     "vitest": "^1.2.2"
   },
   "dependencies": {
-    "@nostr-fetch/adapter-rx-nostr": "^0.13.0",
+    "@nostr-fetch/adapter-rx-nostr": "^0.13.1",
     "date-fns": "^2.30.0",
     "nostr-fetch": "^0.13.1",
     "nostr-tools": "^1.14.2",
