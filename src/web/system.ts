@@ -2,11 +2,12 @@ import * as vscode from "vscode";
 
 import { rxNostrAdapter } from "@nostr-fetch/adapter-rx-nostr";
 import { NostrFetcher } from "nostr-fetch";
-import { getPublicKey } from "nostr-tools";
+import { getPublicKey } from "nostr-tools/pure";
 import { EventParameters, Nip07, Event as NostrEvent } from "nostr-typedef";
 import { RxNostr, createRxForwardReq, createRxNostr, getSignedEvent, uniq, verify } from "rx-nostr";
 import { filter } from "rxjs";
 
+import { hexToBytes } from "@noble/hashes/utils";
 import { CONFIG_KEYS } from "./const";
 import {
   UserStatus,
@@ -145,7 +146,7 @@ export class NostrSystem {
     if (privkey === undefined) {
       return undefined;
     }
-    return getPublicKey(privkey);
+    return getPublicKey(hexToBytes(privkey));
   }
 
   private listenPrivateKeyChange() {

@@ -1,4 +1,5 @@
-import { nip19 } from "nostr-tools";
+import { bytesToHex } from "@noble/hashes/utils";
+import * as nip19 from "nostr-tools/nip19";
 import { Nip07, Event as NostrEvent } from "nostr-typedef";
 
 import { currUnixtime } from "./utils";
@@ -137,7 +138,7 @@ export const toHexPrivateKey = (pk: string): string | undefined => {
     try {
       const res = nip19.decode(pk);
       if (res.type === "nsec") {
-        return res.data;
+        return bytesToHex(res.data);
       }
       console.log("toHexPrivateKey: unexpected decode result");
       return undefined;
