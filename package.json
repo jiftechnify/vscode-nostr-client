@@ -101,12 +101,12 @@
   },
   "scripts": {
     "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
-    "pretest": "yarn run compile-web",
+    "pretest": "pnpm compile-web",
     "esbuild-base": "esbuild ./src/web/extension.ts --bundle --outdir=./dist/web --external:vscode --format=cjs --platform=browser",
-    "compile-web": "yarn esbuild-base --sourcemap",
-    "watch-web": "yarn esbuild-base --sourcemap --watch",
-    "package-web": "yarn esbuild-base --minify",
-    "vscode:prepublish": "yarn run package-web",
+    "compile-web": "pnpm esbuild-base --sourcemap",
+    "watch-web": "pnpm esbuild-base --sourcemap --watch",
+    "package-web": "pnpm esbuild-base --minify",
+    "vscode:prepublish": "pnpm package-web",
     "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. .",
     "lint": "tsc && eslint src --ext ts",
     "unit-test": "vitest run"
