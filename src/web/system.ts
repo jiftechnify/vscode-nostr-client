@@ -3,8 +3,8 @@ import * as vscode from "vscode";
 import { rxNostrAdapter } from "@nostr-fetch/adapter-rx-nostr";
 import { NostrFetcher } from "nostr-fetch";
 import { getPublicKey } from "nostr-tools/pure";
-import { EventParameters, Nip07, Event as NostrEvent } from "nostr-typedef";
-import { RxNostr, createRxForwardReq, createRxNostr, getSignedEvent, uniq, verify } from "rx-nostr";
+import type { EventParameters, Nip07, Event as NostrEvent } from "nostr-typedef";
+import { type RxNostr, createRxForwardReq, createRxNostr, getSignedEvent, uniq, verify } from "rx-nostr";
 import { filter } from "rxjs";
 
 import { hexToBytes } from "@noble/hashes/utils";
@@ -51,7 +51,7 @@ export class NostrSystem {
   #sentEventIds: Set<string> = new Set();
 
   // states sync-ed with relays
-  #metaLastUpdated: number = 0; // unixtime in millisecond
+  #metaLastUpdated = 0; // unixtime in millisecond
   #profile: Record<string, unknown> = {};
   #relaysFromEvents: Nip07.GetRelayResult = {};
   #userStatus = new UserStatus();
@@ -251,7 +251,7 @@ export class NostrSystem {
       .pipe(
         verify(),
         uniq(),
-        filter(({ event }) => !this.#sentEventIds.has(event.id)) // filter out events sent by this client
+        filter(({ event }) => !this.#sentEventIds.has(event.id)), // filter out events sent by this client
       )
       .subscribe(async ({ event }) => {
         console.log("received from relays", event);
@@ -333,7 +333,7 @@ export class NostrSystem {
     const evIter = this.#nostrFetcher.fetchLastEventPerKey(
       "kinds",
       { keys: [0, 3, 10002], relayUrls: relays },
-      { authors: [pubkey] }
+      { authors: [pubkey] },
     );
     for await (const { key: kind, event } of evIter) {
       console.log(kind, event);
@@ -363,7 +363,7 @@ export class NostrSystem {
     const statusEv = await this.#nostrFetcher.fetchLastEvent(
       readRelays,
       { kinds: [30315], authors: [pubkey], "#d": ["general"] },
-      {}
+      {},
     );
 
     console.log("user status event:", statusEv);

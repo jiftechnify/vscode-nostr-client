@@ -1,12 +1,12 @@
 import { bytesToHex } from "@noble/hashes/utils";
 import * as nip19 from "nostr-tools/nip19";
-import { Nip07, Event as NostrEvent } from "nostr-typedef";
+import type { Nip07, Event as NostrEvent } from "nostr-typedef";
 
 import { currUnixtime } from "./utils";
 
 export class UserStatus {
-  #status: string = "";
-  #linkUrl: string = "";
+  #status = "";
+  #linkUrl = "";
   #expiration: number | undefined;
   #expTimer: NodeJS.Timeout | undefined;
 
@@ -91,27 +91,24 @@ export const parseRelayListInKind3 = (ev: NostrEvent): Nip07.GetRelayResult => {
 export const parseRelayListInKind10002 = (ev: NostrEvent): Nip07.GetRelayResult => {
   const res: Nip07.GetRelayResult = {};
 
-  ev.tags
-    .filter((t) => t.length >= 2 && t[0] === "r")
-    .forEach((t) => {
-      const [, url, relayType] = t as [string, string, string | undefined];
+  for (const t of ev.tags.filter((t) => t.length >= 2 && t[0] === "r")) {
+    const [, url, relayType] = t as [string, string, string | undefined];
 
-      if (relayType === undefined) {
+    switch (relayType) {
+      case undefined:
         res[url] = { read: true, write: true };
-      } else {
-        switch (relayType) {
-          case "read":
-            res[url] = { read: true, write: false };
-            return;
-          case "write":
-            res[url] = { read: false, write: true };
-            return;
-          default:
-            console.warn("invalid relay type in kind 10002 event:", relayType);
-            undefined;
-        }
-      }
-    });
+        break;
+      case "read":
+        res[url] = { read: true, write: false };
+        break;
+      case "write":
+        res[url] = { read: false, write: true };
+        break;
+      default:
+        console.warn("invalid relay type in kind 10002 event:", relayType);
+        undefined;
+    }
+  }
 
   return res;
 };
@@ -124,7 +121,7 @@ export const getExpiration = (ev: NostrEvent): number | undefined => {
     return undefined;
   }
   const exp = Number(expStr);
-  return !isNaN(exp) ? exp : undefined;
+  return !Number.isNaN(exp) ? exp : undefined;
 };
 
 const regexp32BytesHexStr = /^[a-f0-9]{64}$/;
