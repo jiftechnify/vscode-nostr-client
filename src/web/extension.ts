@@ -73,7 +73,7 @@ async function handleSetPrivateKey() {
       () => {},
       (err) => {
         console.error(err);
-      }
+      },
     );
     return;
   }
@@ -229,7 +229,7 @@ const checkPrivateKeyFlow = async (): Promise<string | undefined> => {
   if (privkey === undefined) {
     const sel = await vscode.window.showErrorMessage(
       l10n.t("Set your Nostr private key first!"),
-      ...buttonsInNoPrivKeyMsg
+      ...buttonsInNoPrivKeyMsg,
     );
     if (sel === undefined || !sel.ok) {
       return undefined;
