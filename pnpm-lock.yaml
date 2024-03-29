@@ -44,8 +44,8 @@ devDependencies:
     specifier: ^0.0.33
     version: 0.0.33
   '@vscode/test-web':
-    specifier: ^0.0.51
-    version: 0.0.51
+    specifier: ^0.0.52
+    version: 0.0.52
   assert:
     specifier: ^2.1.0
     version: 2.1.0
@@ -56,8 +56,8 @@ devDependencies:
     specifier: ^10.3.0
     version: 10.3.0
   nostr-typedef:
-    specifier: ^0.4.0
-    version: 0.4.0
+    specifier: ^0.9.0
+    version: 0.9.0
   npm-run-all2:
     specifier: ^6.1.2
     version: 6.1.2
@@ -770,8 +770,8 @@ packages:
       - supports-color
     dev: true
 
-  /@vscode/test-web@0.0.51:
-    resolution: {integrity: sha512-BULmM/HkTuWYuDQLq17L0XYZkzOtsIIC38HN5eYaVBUXSOSwXpyihTalsQ6y9GNPuGWZUnc2XqXYvR6gdSHHOg==}
+  /@vscode/test-web@0.0.52:
+    resolution: {integrity: sha512-PEYyru1GTUgNFpICWnvz33MnZ+nIIdG6feYHebvJMyFRZFL4s35Mp/6/aa8xUvfzAz/XBHCsbLRtJ1l067f/eQ==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
@@ -2097,6 +2097,11 @@ packages:
 
   /nostr-typedef@0.4.0:
     resolution: {integrity: sha512-0hixsTzPHQ0EWGR592mEQFunAk3+0DkgLTXFi5emViMbSpu2f8g5mjjgEgDwjiky047dTfiVw7qMKibZrI5DfQ==}
+    dev: false
+
+  /nostr-typedef@0.9.0:
+    resolution: {integrity: sha512-nLTzhlYcRnLQGUJ5YfvGAUDyGFHjGH6Qozltl/wV3UXelmiUwjrwI8IIxQNkbgVMv+zmbFi/m1xKHxIvVfG09w==}
+    dev: true
 
   /nostr-wasm@0.1.0:
     resolution: {integrity: sha512-78BTryCLcLYv96ONU8Ws3Q1JzjlAt+43pWQhIl86xZmWeegYCNLPml7yQ+gG3vR6V5h4XGj+TxO+SS5dsThQIA==}
