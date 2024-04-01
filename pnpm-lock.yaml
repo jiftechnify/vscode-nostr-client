@@ -44,8 +44,8 @@ devDependencies:
     specifier: ^0.0.33
     version: 0.0.33
   '@vscode/test-web':
-    specifier: ^0.0.52
-    version: 0.0.52
+    specifier: ^0.0.53
+    version: 0.0.53
   assert:
     specifier: ^2.1.0
     version: 2.1.0
@@ -770,8 +770,8 @@ packages:
       - supports-color
     dev: true
 
-  /@vscode/test-web@0.0.52:
-    resolution: {integrity: sha512-PEYyru1GTUgNFpICWnvz33MnZ+nIIdG6feYHebvJMyFRZFL4s35Mp/6/aa8xUvfzAz/XBHCsbLRtJ1l067f/eQ==}
+  /@vscode/test-web@0.0.53:
+    resolution: {integrity: sha512-PXLWDJbCF4840jNxPAuLk+ikB9oqC1bALftp5r6tmO55gfoNTxf+sPaIEn3rgHujOnATmDWDOXFmVLKPwWMrAA==}
     engines: {node: '>=16'}
     hasBin: true
     dependencies:
