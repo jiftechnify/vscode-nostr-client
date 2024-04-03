@@ -41,8 +41,8 @@ devDependencies:
     specifier: ^1.87.0
     version: 1.87.0
   '@vscode/l10n-dev':
-    specifier: ^0.0.33
-    version: 0.0.33
+    specifier: ^0.0.34
+    version: 0.0.34
   '@vscode/test-web':
     specifier: ^0.0.53
     version: 0.0.53
@@ -752,8 +752,8 @@ packages:
       pretty-format: 29.7.0
     dev: true
 
-  /@vscode/l10n-dev@0.0.33:
-    resolution: {integrity: sha512-F8uPlMv2ayxlANHDBBCblo6e0U7Siz6g8KPwE+Q42O/i79qRus2Lke+fR2A33tbDHLxfUGmyYmguI3OdBWs5CQ==}
+  /@vscode/l10n-dev@0.0.34:
+    resolution: {integrity: sha512-0y6FDDPG0BZltGl+yDxl3jQRB4Jn9B8kaSw1cMKJoHM5IYLovl4B635eKf6KtAY8/MNfv8T9j9xF1qsm2jvstg==}
     hasBin: true
     dependencies:
       '@azure-rest/ai-translation-text': 1.0.0-beta.1
