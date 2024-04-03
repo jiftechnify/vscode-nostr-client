@@ -122,7 +122,7 @@
     "@types/node": "^20.12.2",
     "@types/vscode": "^1.87.0",
     "@vscode/l10n-dev": "^0.0.33",
-    "@vscode/test-web": "^0.0.52",
+    "@vscode/test-web": "^0.0.53",
     "assert": "^2.1.0",
     "esbuild": "^0.20.2",
     "mocha": "^10.4.0",
