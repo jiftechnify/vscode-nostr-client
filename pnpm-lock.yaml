@@ -21,8 +21,8 @@ dependencies:
     specifier: ^0.13.1
     version: 0.13.1
   nostr-tools:
-    specifier: ^2.3.1
-    version: 2.3.2(typescript@5.4.4)
+    specifier: ^2.4.0
+    version: 2.4.0(typescript@5.4.4)
   rx-nostr:
     specifier: ^1.8.1
     version: 1.8.1
@@ -680,15 +680,15 @@ packages:
     resolution: {integrity: sha512-osvveYtyzdEVbt3OfwwXFr4P2iVBL5u1Q3q4ONBfDY/UpOuXmOlbgwc1xECEboY8wIays8Yt6onaWMUdUbfl0A==}
     dependencies:
       '@noble/curves': 1.1.0
-      '@noble/hashes': 1.3.1
-      '@scure/base': 1.1.1
+      '@noble/hashes': 1.3.2
+      '@scure/base': 1.1.6
     dev: false
 
   /@scure/bip39@1.2.1:
     resolution: {integrity: sha512-Z3/Fsz1yr904dduJD0NpiyRHhRYHdcnyh73FZWiV+/qhWi83wNJ3NWolYqCEN+ZWsUz2TWwajJggcRE9r1zUYg==}
     dependencies:
-      '@noble/hashes': 1.3.1
-      '@scure/base': 1.1.1
+      '@noble/hashes': 1.3.2
+      '@scure/base': 1.1.6
     dev: false
 
   /@sinclair/typebox@0.27.8:
@@ -2076,8 +2076,8 @@ packages:
       '@nostr-fetch/kernel': 0.13.1
     dev: false
 
-  /nostr-tools@2.3.2(typescript@5.4.4):
-    resolution: {integrity: sha512-8ceZ2ItkAGjR5b9+QOkkV9KWBOK0WPlpFrPPXmbWnNMcnlj9zB7rjdYPK2sV/OK4Ty9J3xL6+bvYKY77gup5EQ==}
+  /nostr-tools@2.4.0(typescript@5.4.4):
+    resolution: {integrity: sha512-xQC7XdGeh0gLyprcKhvx5lwr7OQ+ZOiQ9C6GpzlVAj+EBv+AiN8kySb57t3uJoG1HK15oT9jf++MmQLwhp1xNQ==}
     peerDependencies:
       typescript: '>=5.0.0'
     peerDependenciesMeta:
