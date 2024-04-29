@@ -21,8 +21,8 @@ dependencies:
     specifier: ^0.13.1
     version: 0.13.1
   nostr-tools:
-    specifier: ^2.4.0
-    version: 2.4.0(typescript@5.4.4)
+    specifier: ^2.5.1
+    version: 2.5.1(typescript@5.4.4)
   rx-nostr:
     specifier: ^1.8.1
     version: 1.8.1
@@ -2076,8 +2076,8 @@ packages:
       '@nostr-fetch/kernel': 0.13.1
     dev: false
 
-  /nostr-tools@2.4.0(typescript@5.4.4):
-    resolution: {integrity: sha512-xQC7XdGeh0gLyprcKhvx5lwr7OQ+ZOiQ9C6GpzlVAj+EBv+AiN8kySb57t3uJoG1HK15oT9jf++MmQLwhp1xNQ==}
+  /nostr-tools@2.5.1(typescript@5.4.4):
+    resolution: {integrity: sha512-bpkhGGAhdiCN0irfV+xoH3YP5CQeOXyXzUq7SYeM6D56xwTXZCPEmBlUGqFVfQidvRsoVeVxeAiOXW2c2HxoRQ==}
     peerDependencies:
       typescript: '>=5.0.0'
     peerDependenciesMeta:
