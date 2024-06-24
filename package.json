@@ -129,7 +129,7 @@
     "nostr-typedef": "^0.9.0",
     "npm-run-all2": "^6.1.2",
     "process": "^0.11.10",
-    "typescript": "^5.4.4",
+    "typescript": "^5.5.2",
     "vitest": "^1.4.0"
   },
   "dependencies": {
